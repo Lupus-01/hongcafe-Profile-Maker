@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상담사 프로필 콘텐츠 생성기 V7 (최종)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="pb-layout pb-theme-sinjeom" id="pb-app">
+        <aside class="pb-sidebar">
+            <div class="pb-sidebar-header">
+                <h2>프로필 빌더 <span>V7</span></h2>
+                <p>프리미엄 상담사 소개 템플릿</p>
+            </div>
+
+            <div class="pb-section">
+                <div class="pb-theme-selectors">
+                    <button class="pb-theme-btn" data-theme="pb-theme-tarot" data-color="#6335B4" data-bg="#f4f0fa">🔮 타로</button>
+                    <button class="pb-theme-btn" data-theme="pb-theme-saju" data-color="#D67A00" data-bg="#fdf8f2">📜 사주</button>
+                    <button class="pb-theme-btn active" data-theme="pb-theme-sinjeom" data-color="#C21129" data-bg="#fdf0f1">🔔 신점</button>
+                </div>
+            </div>
+
+            <div class="pb-section pb-flex-fill pb-palette-container">
+                <div class="pb-palette-group">
+                    <h3 class="pb-subtitle">👤 프로필 & 전문성</h3>
+                    <div class="pb-tools-grid">
+                        <div class="pb-tool" draggable="true" data-type="hero">대표 프로필 (사진)</div>
+                        <div class="pb-tool" draggable="true" data-type="stats">경력·수치</div>
+                        <div class="pb-tool" draggable="true" data-type="specialty">✅ 전문 분야</div>
+                        <div class="pb-tool" draggable="true" data-type="highlight">💡 강조 박스</div>
+                        <div class="pb-tool" draggable="true" data-type="letter">💌 진심 편지</div>
+                    </div>
+                </div>
+
+                <div class="pb-palette-group">
+                    <h3 class="pb-subtitle">📝 스토리 & 리뷰</h3>
+                    <div class="pb-tools-grid">
+                        <div class="pb-tool" draggable="true" data-type="catchphrase">✨ 핵심 캐치</div>
+                        <div class="pb-tool" draggable="true" data-type="qa">🎤 Q&A 인터뷰</div>
+                        <div class="pb-tool" draggable="true" data-type="review">💬 감성 리뷰</div>
+                        <div class="pb-tool" draggable="true" data-type="text">본문 텍스트</div>
+                        <div class="pb-tool" draggable="true" data-type="quote">❝ 인용구</div>
+                        <div class="pb-tool" draggable="true" data-type="hashtag">🏷️ 해시태그</div>
+                    </div>
+                </div>
+
+                <div class="pb-palette-group">
+                    <h3 class="pb-subtitle">🎨 디자인 & 레이아웃</h3>
+                    <div class="pb-tools-grid">
+                        <div class="pb-tool" draggable="true" data-type="image">🖼️ 와이드 사진</div>
+                        <div class="pb-tool" draggable="true" data-type="title-divider">텍스트 선</div>
+                        <div class="pb-tool" draggable="true" data-type="icon-divider">✦ 문양 선 ✦</div>
+                        <div class="pb-tool" draggable="true" data-type="divider">➖ 기본 선</div>
+                        <div class="pb-tool" draggable="true" data-type="spacer">⬛ 투명 여백</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pb-actions">
+                <button id="pb-preview-btn" class="pb-action-btn">👀 미리보기</button>
+                <button id="pb-clear-btn" class="pb-action-btn danger">🗑️ 전체 초기화</button>
+                <button id="pb-export-btn" class="pb-action-btn primary">✨ 코드 생성 및 복사</button>
+            </div>
+        </aside>
+
+        <main class="pb-canvas-wrapper">
+            <div class="pb-canvas" id="pb-canvas">
+                <div class="pb-empty-state">
+                    <div class="pb-empty-icon">🖱️</div>
+                    <p>왼쪽 패널에서 블록을 끌어다 놓으세요.</p>
+                </div>
+            </div>
+        </main>
+
+        <input type="file" id="pb-image-uploader" accept="image/*" style="display: none;">
+
+        <div class="pb-modal" id="pb-modal">
+            <div class="pb-modal-content">
+                <div class="pb-modal-header">
+                    <h3>📱 고객 화면 미리보기</h3>
+                    <button id="pb-close-modal" class="pb-close-btn">&times;</button>
+                </div>
+                <div class="pb-modal-body" id="pb-preview-area"></div>
+            </div>
+        </div>
+
+        <div class="pb-modal" id="pb-code-modal">
+            <div class="pb-modal-content pb-code-modal-content">
+                <div class="pb-modal-header pb-dark-header">
+                    <h3><span style="color:#e5c07b;">&lt;/&gt;</span> Exported HTML & CSS</h3>
+                    <button id="pb-close-code-modal" class="pb-close-btn dark">&times;</button>
+                </div>
+                <div class="pb-modal-body pb-dark-body">
+                    <div class="pb-code-toolbar">
+                        <span>profile.html</span>
+                        <button id="pb-copy-btn" class="pb-copy-badge">복사하기</button>
+                    </div>
+                    <textarea id="pb-code-output" readonly spellcheck="false"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
