@@ -446,8 +446,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!img || !img.src || img.src === window.location.href) {
                 if (img) img.remove();
                 if (placeholder) placeholder.remove();
+                uploadable.setAttribute('data-export-empty-image', 'true');
             } else if (placeholder) {
                 placeholder.remove();
+                uploadable.removeAttribute('data-export-empty-image');
             }
         });
 
@@ -518,10 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         clone.querySelectorAll('.pb-presentation-hero').forEach((node) => setInlineStyles(node, {
-            display: 'grid',
-            'grid-template-columns': 'minmax(0, 1.1fr) minmax(180px, 0.9fr)',
-            gap: '20px',
-            'align-items': 'end',
+            display: 'block',
             'margin-bottom': '26px'
         }));
 
@@ -577,10 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
 
         clone.querySelectorAll('.pb-presentation-grid').forEach((node) => setInlineStyles(node, {
-            display: 'grid',
-            'grid-template-columns': 'minmax(0, 1fr) minmax(0, 0.9fr)',
-            gap: '24px',
-            'align-items': 'start',
+            display: 'block',
             'margin-bottom': '28px'
         }));
 
@@ -621,33 +617,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         clone.querySelectorAll('.pb-presentation-portrait, .pb-presentation-photo').forEach((node) => {
             const hasImage = Boolean(node.querySelector('.pb-uploaded-img'));
-            if (!hasImage) {
-                node.remove();
-                return;
-            }
+            const isPortrait = node.classList.contains('pb-presentation-portrait');
 
             setInlineStyles(node, {
+                display: 'block',
+                width: '100%',
                 overflow: 'hidden',
                 position: 'relative',
-                background: 'rgba(255,255,255,0.6)',
-                'border-radius': node.classList.contains('pb-presentation-portrait') ? '28px' : '24px',
-                'min-height': node.classList.contains('pb-presentation-portrait') ? '360px' : '420px',
-                'box-shadow': 'inset 0 0 0 1px rgba(124, 88, 70, 0.08)'
+                margin: isPortrait ? '20px 0 0' : '0 0 22px',
+                padding: hasImage ? '0' : (isPortrait ? '32px 24px' : '40px 24px'),
+                background: hasImage ? 'rgba(255,255,255,0.6)' : 'linear-gradient(180deg, rgba(255,255,255,0.68), rgba(255,255,255,0.42))',
+                'border-radius': isPortrait ? '28px' : '24px',
+                'box-shadow': 'inset 0 0 0 1px rgba(124, 88, 70, 0.08)',
+                'box-sizing': 'border-box',
+                'text-align': 'center'
             });
+
+            if (!hasImage) {
+                node.innerHTML = `<div style="font-size:${bodySize}; line-height:${lineHeight}; color:#8c7a70; font-weight:600;">이미지 등록 영역</div>`;
+            }
         });
 
         clone.querySelectorAll('.pb-presentation-portrait .pb-uploaded-img, .pb-presentation-photo .pb-uploaded-img').forEach((node) => setInlineStyles(node, {
             width: '100%',
-            height: '100%',
+            height: 'auto',
             display: 'block',
-            'object-fit': 'cover'
+            'max-width': '100%',
+            'object-fit': 'contain'
         }));
-
-        clone.querySelectorAll('.pb-presentation-hero, .pb-presentation-grid').forEach((node) => {
-            if (node.children.length <= 1) {
-                node.style.display = 'block';
-            }
-        });
 
         normalizeExportRichText(clone);
     }
