@@ -16,7 +16,7 @@ const DAILY_PROFILE_LIMIT = Number(process.env.DAILY_PROFILE_LIMIT || 50);
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || '';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const TEXT_MODEL = process.env.TEXT_MODEL || 'gemini-2.5-flash-lite';
-const IMAGE_MODEL = process.env.IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation';
+const IMAGE_MODEL = process.env.IMAGE_MODEL || 'gemini-2.5-flash-image';
 const usageFilePath = path.join(__dirname, '.profile-usage.json');
 
 const app = express();
@@ -291,22 +291,40 @@ ${pptInfo.combinedText}
 }
 
 async function generateImage(prompt, imageKind) {
-    const response = await ai.models.generateContent({
-        model: IMAGE_MODEL,
-        contents: prompt,
-        config: {
-            responseModalities: ['TEXT', 'IMAGE']
-        }
-    });
+    const fallbackModels = [
+        IMAGE_MODEL,
+        'gemini-2.5-flash-image',
+        'gemini-3-pro-image-preview',
+        'gemini-2.0-flash-preview-image-generation'
+    ];
+    const modelsToTry = [...new Set(fallbackModels.filter(Boolean))];
+    let lastError = null;
 
-    const imageDataUrl = extractInlineImage(response);
-    if (!imageDataUrl) {
-        console.warn(`[image] ${imageKind} image was not returned`, summarizeResponseForLog(response));
-    } else {
-        console.log(`[image] ${imageKind} image generated successfully`);
+    for (const model of modelsToTry) {
+        try {
+            const response = await ai.models.generateContent({
+                model,
+                contents: prompt,
+                config: {
+                    responseModalities: ['TEXT', 'IMAGE']
+                }
+            });
+
+            const imageDataUrl = extractInlineImage(response);
+            if (!imageDataUrl) {
+                console.warn(`[image] ${imageKind} image was not returned for model ${model}`, summarizeResponseForLog(response));
+                continue;
+            }
+
+            console.log(`[image] ${imageKind} image generated successfully with model ${model}`);
+            return imageDataUrl;
+        } catch (error) {
+            lastError = error;
+            console.warn(`[image] ${imageKind} generation failed with model ${model}`, error?.message || error);
+        }
     }
 
-    return imageDataUrl;
+    throw lastError || new Error(`${imageKind} image generation failed for all configured models.`);
 }
 
 async function generatePortraitImage(payload, extraPrompt = '') {
