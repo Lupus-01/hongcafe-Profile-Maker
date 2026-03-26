@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pptGenerateImage = document.getElementById('pb-ppt-generate-image');
     const pptGenerateButton = document.getElementById('pb-ppt-generate-btn');
     const pptStatus = document.getElementById('pb-ppt-status');
+    const pptImageIssue = document.getElementById('pb-ppt-image-issue');
 
     const aiTemplate = document.getElementById('pb-ai-template');
     const aiName = document.getElementById('pb-ai-name');
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const aiGenerateImage = document.getElementById('pb-ai-generate-image');
     const aiGenerateButton = document.getElementById('pb-ai-generate-btn');
     const aiStatus = document.getElementById('pb-ai-status');
+    const aiImageIssue = document.getElementById('pb-ai-image-issue');
 
     const previewModal = document.getElementById('pb-modal');
     const previewArea = document.getElementById('pb-preview-area');
@@ -100,6 +102,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         return `${baseMessage}${usageMessage}`;
+    }
+
+    function renderImageIssue(panel, imageMeta) {
+        if (!panel) return;
+
+        if (!imageMeta?.requested) {
+            panel.hidden = true;
+            panel.innerHTML = '';
+            return;
+        }
+
+        const statusLabel = imageMeta.hasAnyImage ? '정상 생성' : '생성 이슈 발생';
+        const summary = imageMeta.hasAnyImage
+            ? '이미지 생성이 정상적으로 완료되었습니다.'
+            : (imageMeta.message || '이미지 생성이 완료되지 않았습니다.');
+        const actionHint = imageMeta.hasAnyImage
+            ? '필요하면 이미지 영역을 눌러 직접 교체할 수 있습니다.'
+            : '이미지 영역을 눌러 직접 업로드하거나 잠시 후 다시 시도해보세요.';
+
+        panel.hidden = false;
+        panel.innerHTML = `
+            <div class="pb-issue-header">
+                <strong>이미지 생성 상태</strong>
+                <span class="pb-issue-badge ${imageMeta.hasAnyImage ? 'is-success' : 'is-warning'}">${statusLabel}</span>
+            </div>
+            <p class="pb-issue-summary">${summary}</p>
+            <p class="pb-issue-action">${actionHint}</p>
+            <div class="pb-issue-links">
+                <a href="https://ai.dev/rate-limit" target="_blank" rel="noreferrer">Google AI Studio 사용량 확인</a>
+                <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noreferrer">Gemini API 무료 티어 한도 보기</a>
+            </div>
+        `;
     }
 
     function applyTheme(themeName) {
@@ -365,8 +399,10 @@ document.addEventListener('DOMContentLoaded', () => {
             fillPresentation(element, data.profile);
 
             setStatus(aiStatus, buildGenerationStatus('생성이 완료되었습니다.', data.usage, data.imageMeta), 'success');
+            renderImageIssue(aiImageIssue, data.imageMeta);
         } catch (error) {
             setStatus(aiStatus, error.message || 'AI 생성 중 오류가 발생했습니다.', 'error');
+            renderImageIssue(aiImageIssue, null);
         } finally {
             aiGenerateButton.disabled = false;
         }
@@ -412,8 +448,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 buildGenerationStatus(`${slideMessage} 생성이 완료되었습니다.`.trim(), data.usage, data.imageMeta),
                 'success'
             );
+            renderImageIssue(pptImageIssue, data.imageMeta);
         } catch (error) {
             setStatus(pptStatus, error.message || 'PPT 생성 중 오류가 발생했습니다.', 'error');
+            renderImageIssue(pptImageIssue, null);
         } finally {
             pptGenerateButton.disabled = false;
         }
