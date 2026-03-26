@@ -23,6 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const aiGenerateButton = document.getElementById('pb-ai-generate-btn');
     const aiStatus = document.getElementById('pb-ai-status');
     const aiImageIssue = document.getElementById('pb-ai-image-issue');
+    const fontFamilySelect = document.getElementById('pb-font-family');
+    const titleSizeInput = document.getElementById('pb-title-size');
+    const bodySizeInput = document.getElementById('pb-body-size');
+    const pointSizeInput = document.getElementById('pb-point-size');
+    const lineHeightInput = document.getElementById('pb-line-height');
+    const titleSizeValue = document.getElementById('pb-title-size-value');
+    const bodySizeValue = document.getElementById('pb-body-size-value');
+    const pointSizeValue = document.getElementById('pb-point-size-value');
+    const lineHeightValue = document.getElementById('pb-line-height-value');
 
     const previewModal = document.getElementById('pb-modal');
     const previewArea = document.getElementById('pb-preview-area');
@@ -35,6 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentBrandColor = '#C21129';
     let currentBrandBg = '#fdf0f1';
     let currentBrandLight = '#fbe6e8';
+    const defaultTypography = {
+        fontFamily: `'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif`,
+        titleSize: 42,
+        bodySize: 16,
+        pointSize: 17,
+        lineHeight: 1.8
+    };
 
     const templates = {
         'tarot-ppt': {
@@ -151,6 +167,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentBrandColor === '#6335B4') currentBrandLight = '#ece5f7';
         else if (currentBrandColor === '#D67A00') currentBrandLight = '#faecd6';
         else currentBrandLight = '#fbe6e8';
+    }
+
+    function applyTypographySettings() {
+        const fontFamily = fontFamilySelect?.value || defaultTypography.fontFamily;
+        const titleSize = Number(titleSizeInput?.value || defaultTypography.titleSize);
+        const bodySize = Number(bodySizeInput?.value || defaultTypography.bodySize);
+        const pointSize = Number(pointSizeInput?.value || defaultTypography.pointSize);
+        const lineHeight = Number(lineHeightInput?.value || defaultTypography.lineHeight);
+
+        canvas.style.setProperty('--pb-font-family', fontFamily);
+        canvas.style.setProperty('--pb-title-size', `${titleSize}px`);
+        canvas.style.setProperty('--pb-body-size', `${bodySize}px`);
+        canvas.style.setProperty('--pb-point-size', `${pointSize}px`);
+        canvas.style.setProperty('--pb-body-line-height', String(lineHeight));
+        canvas.style.setProperty('--pb-subtitle-size', `${Math.max(bodySize + 10, 24)}px`);
+        canvas.style.setProperty('--pb-chip-size', `${Math.max(bodySize, 15)}px`);
+
+        if (titleSizeValue) titleSizeValue.textContent = `${titleSize}px`;
+        if (bodySizeValue) bodySizeValue.textContent = `${bodySize}px`;
+        if (pointSizeValue) pointSizeValue.textContent = `${pointSize}px`;
+        if (lineHeightValue) lineHeightValue.textContent = lineHeight.toFixed(1);
+    }
+
+    function bindTypographyControls() {
+        [fontFamilySelect, titleSizeInput, bodySizeInput, pointSizeInput, lineHeightInput]
+            .filter(Boolean)
+            .forEach((control) => {
+                const eventName = control.tagName === 'SELECT' ? 'change' : 'input';
+                control.addEventListener(eventName, applyTypographySettings);
+            });
     }
 
     function buildPresentationMarkup(type) {
@@ -562,5 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pptGenerateButton?.addEventListener('click', requestPptGeneration);
 
     bindUploadables(document.body);
+    bindTypographyControls();
     applyTheme('pb-theme-sinjeom');
+    applyTypographySettings();
 });
