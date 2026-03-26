@@ -11,7 +11,7 @@
         <aside class="pb-sidebar">
             <div class="pb-sidebar-header">
                 <h2>프로필 빌더 <span>V7</span></h2>
-                <p>상담사 소개 페이지를 빠르게 만들고 AI로 문구와 이미지를 채웁니다.</p>
+                <p>PPT 내용을 바탕으로 상담사 소개 페이지를 자동 재구성합니다.</p>
             </div>
 
             <div class="pb-section">
@@ -24,8 +24,39 @@
 
             <section class="pb-section pb-ai-panel">
                 <div class="pb-ai-header">
-                    <h3>AI 프로필 생성</h3>
-                    <span class="pb-ai-badge">하루 50개 기준</span>
+                    <h3>PPT 업로드 생성</h3>
+                    <span class="pb-ai-badge">우선 지원: .pptx</span>
+                </div>
+                <div class="pb-ai-form">
+                    <label class="pb-ai-field">
+                        <span>결과 템플릿</span>
+                        <select id="pb-ppt-template">
+                            <option value="tarot-ppt">타로형 결과</option>
+                            <option value="saju-ppt">사주형 결과</option>
+                            <option value="sinjeom-ppt" selected>신점형 결과</option>
+                        </select>
+                    </label>
+                    <label class="pb-ai-field">
+                        <span>PPT 파일 업로드</span>
+                        <input id="pb-ppt-file" type="file" accept=".pptx,.ppt,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint">
+                    </label>
+                    <label class="pb-ai-field">
+                        <span>이미지 생성 스타일</span>
+                        <input id="pb-ppt-image-style" type="text" placeholder="예: 부드러운 스튜디오 조명, 화이트 셔츠, 프리미엄 프로필 무드">
+                    </label>
+                    <label class="pb-ai-inline">
+                        <input id="pb-ppt-generate-image" type="checkbox" checked>
+                        <span>대표 프로필 이미지도 함께 생성</span>
+                    </label>
+                    <button id="pb-ppt-generate-btn" class="pb-action-btn primary" type="button">PPT로 결과 생성</button>
+                    <p id="pb-ppt-status" class="pb-ai-status">PPT 내용을 읽어 예시와 비슷한 완성형 소개 페이지로 재구성합니다.</p>
+                </div>
+            </section>
+
+            <section class="pb-section pb-ai-panel">
+                <div class="pb-ai-header">
+                    <h3>직접 입력 생성</h3>
+                    <span class="pb-ai-badge">백업 입력 방식</span>
                 </div>
                 <div class="pb-ai-form">
                     <label class="pb-ai-field">
@@ -54,14 +85,14 @@
                     </label>
                     <label class="pb-ai-field">
                         <span>프로필 이미지 스타일</span>
-                        <input id="pb-ai-image-style" type="text" placeholder="예: 부드러운 스튜디오 조명, 단정한 한복 느낌">
+                        <input id="pb-ai-image-style" type="text" placeholder="예: 부드러운 스튜디오 조명, 단정한 화이트 톤">
                     </label>
                     <label class="pb-ai-inline">
                         <input id="pb-ai-generate-image" type="checkbox" checked>
                         <span>대표 프로필 이미지까지 함께 생성</span>
                     </label>
-                    <button id="pb-ai-generate-btn" class="pb-action-btn primary" type="button">AI로 프로필 생성</button>
-                    <p id="pb-ai-status" class="pb-ai-status">API 연결 전에는 동작하지 않습니다.</p>
+                    <button id="pb-ai-generate-btn" class="pb-action-btn" type="button">직접 입력으로 생성</button>
+                    <p id="pb-ai-status" class="pb-ai-status">직접 입력한 정보로 AI 소개 페이지를 생성합니다.</p>
                 </div>
             </section>
 
@@ -69,23 +100,23 @@
                 <div class="pb-palette-group">
                     <h3 class="pb-subtitle">프로필 & 소개</h3>
                     <div class="pb-tools-grid">
-                        <div class="pb-tool" draggable="true" data-type="hero">대표 프로필 (사진)</div>
+                        <div class="pb-tool" draggable="true" data-type="hero">대표 프로필</div>
                         <div class="pb-tool" draggable="true" data-type="stats">경력·수치</div>
                         <div class="pb-tool" draggable="true" data-type="specialty">전문 분야</div>
                         <div class="pb-tool" draggable="true" data-type="highlight">강조 박스</div>
                         <div class="pb-tool" draggable="true" data-type="letter">진심 편지</div>
-                        <div class="pb-tool" draggable="true" data-type="tarot-ppt">타로 PPT형</div>
-                        <div class="pb-tool" draggable="true" data-type="saju-ppt">사주 PPT형</div>
-                        <div class="pb-tool" draggable="true" data-type="sinjeom-ppt">신점 PPT형</div>
+                        <div class="pb-tool" draggable="true" data-type="tarot-ppt">타로형</div>
+                        <div class="pb-tool" draggable="true" data-type="saju-ppt">사주형</div>
+                        <div class="pb-tool" draggable="true" data-type="sinjeom-ppt">신점형</div>
                     </div>
                 </div>
 
                 <div class="pb-palette-group">
                     <h3 class="pb-subtitle">스토리 & 리뷰</h3>
                     <div class="pb-tools-grid">
-                        <div class="pb-tool" draggable="true" data-type="catchphrase">핵심 캐치</div>
-                        <div class="pb-tool" draggable="true" data-type="qa">Q&A 인터뷰</div>
-                        <div class="pb-tool" draggable="true" data-type="review">감성 리뷰</div>
+                        <div class="pb-tool" draggable="true" data-type="catchphrase">핵심 카피</div>
+                        <div class="pb-tool" draggable="true" data-type="qa">Q&A</div>
+                        <div class="pb-tool" draggable="true" data-type="review">리뷰</div>
                         <div class="pb-tool" draggable="true" data-type="text">본문 텍스트</div>
                         <div class="pb-tool" draggable="true" data-type="quote">인용구</div>
                         <div class="pb-tool" draggable="true" data-type="hashtag">해시태그</div>
@@ -95,7 +126,7 @@
                 <div class="pb-palette-group">
                     <h3 class="pb-subtitle">이미지 & 레이아웃</h3>
                     <div class="pb-tools-grid">
-                        <div class="pb-tool" draggable="true" data-type="image">와이드 사진</div>
+                        <div class="pb-tool" draggable="true" data-type="image">와이드 이미지</div>
                         <div class="pb-tool" draggable="true" data-type="title-divider">텍스트 선</div>
                         <div class="pb-tool" draggable="true" data-type="icon-divider">문양 선</div>
                         <div class="pb-tool" draggable="true" data-type="divider">기본 선</div>
@@ -114,8 +145,8 @@
         <main class="pb-canvas-wrapper">
             <div class="pb-canvas" id="pb-canvas">
                 <div class="pb-empty-state">
-                    <div class="pb-empty-icon">드래그</div>
-                    <p>왼쪽 블록을 끌어와 프로필을 만들거나, AI 프로필 생성 버튼으로 바로 시작하세요.</p>
+                    <div class="pb-empty-icon">PPT</div>
+                    <p>PPT 업로드 생성 버튼으로 시작하거나, 왼쪽 블록을 끌어와 직접 조합해보세요.</p>
                 </div>
             </div>
         </main>

@@ -5,6 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeButtons = document.querySelectorAll('.pb-theme-btn');
     const imageUploader = document.getElementById('pb-image-uploader');
 
+    const pptTemplate = document.getElementById('pb-ppt-template');
+    const pptFile = document.getElementById('pb-ppt-file');
+    const pptImageStyle = document.getElementById('pb-ppt-image-style');
+    const pptGenerateImage = document.getElementById('pb-ppt-generate-image');
+    const pptGenerateButton = document.getElementById('pb-ppt-generate-btn');
+    const pptStatus = document.getElementById('pb-ppt-status');
+
     const aiTemplate = document.getElementById('pb-ai-template');
     const aiName = document.getElementById('pb-ai-name');
     const aiSpecialty = document.getElementById('pb-ai-specialty');
@@ -31,56 +38,56 @@ document.addEventListener('DOMContentLoaded', () => {
         'tarot-ppt': {
             theme: 'pb-theme-tarot',
             variant: 'tarot',
-            eyebrow: 'Tarot Profile',
-            headline: 'AI가 작성할 타로 메인 카피',
+            eyebrow: 'Tarot Editorial',
+            headline: '타로를 보면, 숨겨진 마음의 결이 보입니다',
             intro: '상담사의 성향과 강점을 기준으로 소개 문구가 자동으로 들어갑니다.',
-            sectionTitle: '타로 상담의 매력을 정리하는 섹션',
+            sectionTitle: '전화타로, 어떤 점이 매력적인가요?',
             sectionBody: '속마음, 재회, 관계 흐름처럼 상담의 강점을 설명하는 본문 슬롯입니다.',
-            points: ['AI 포인트 1', 'AI 포인트 2', 'AI 포인트 3'],
-            cardTitle: 'AI가 정리한 타로 상담 포인트',
-            cardBody: '전화 상담의 장점, 접근 방식, 추천 대상 등을 이 카드에 담습니다.',
-            closingTitle: 'AI가 마무리 문구를 작성하는 영역',
+            points: ['상대방의 속마음이 궁금할 때', '막막한 관계의 방향이 필요할 때', '혼자 정리하기 어려운 감정일 때'],
+            cardTitle: '전화로도 충분히 깊은 타로 상담',
+            cardBody: '전화 상담의 장점, 접근 방식, 추천 대상을 이 카드에 담습니다.',
+            closingTitle: '편하게 이야기 나누며 속마음을 읽어봅니다',
             closingBody: '짧은 안내나 CTA 문구가 마지막 문단에 들어갑니다.',
             portraitPlaceholder: '타로 상담사 프로필 이미지',
-            moodPlaceholder: '타로 분위기 이미지'
+            moodPlaceholder: '타로 무드 이미지'
         },
         'saju-ppt': {
             theme: 'pb-theme-saju',
             variant: 'saju',
-            eyebrow: 'Saju Profile',
-            headline: 'AI가 작성할 사주 메인 카피',
-            intro: '사주 상담사의 해석 스타일과 장점을 바탕으로 소개 문구를 자동 생성합니다.',
-            sectionTitle: '사주 상담의 강점을 보여주는 섹션',
+            eyebrow: 'Saju Editorial',
+            headline: '사주는 흐름을 읽고, 지금의 방향을 정리합니다',
+            intro: '사주 상담사의 해석 스타일과 강점을 바탕으로 소개 문구를 자동 생성합니다.',
+            sectionTitle: '사주 상담이 필요한 순간을 정리합니다',
             sectionBody: '성향, 시기, 흐름에 강한 상담인지 설명하는 본문 슬롯입니다.',
-            points: ['AI 포인트 1', 'AI 포인트 2', 'AI 포인트 3'],
-            cardTitle: 'AI가 정리한 사주 상담 포인트',
+            points: ['올해 흐름이 궁금할 때', '직업과 진로 방향이 헷갈릴 때', '관계 흐름을 현실적으로 보고 싶을 때'],
+            cardTitle: '사주를 통해 지금의 결을 읽습니다',
             cardBody: '직업, 연애, 대인관계, 운 흐름 같은 보조 설명을 이 카드에 담습니다.',
-            closingTitle: 'AI가 마무리 메시지를 작성하는 영역',
+            closingTitle: '사주로 현재와 다음 흐름을 선명하게 봅니다',
             closingBody: '부담 없는 권유 문구와 상담의 핵심 가치가 마지막에 들어갑니다.',
             portraitPlaceholder: '사주 상담사 프로필 이미지',
-            moodPlaceholder: '사주 분위기 이미지'
+            moodPlaceholder: '사주 무드 이미지'
         },
         'sinjeom-ppt': {
             theme: 'pb-theme-sinjeom',
             variant: 'sinjeom',
-            eyebrow: 'Sinjeom Profile',
-            headline: 'AI가 작성할 신점 메인 카피',
+            eyebrow: 'Sinjeom Editorial',
+            headline: '신점은 답답한 마음에 방향을 비춥니다',
             intro: '전달 방식과 분위기에 맞춘 신점 소개 문구가 자동 생성됩니다.',
             sectionTitle: '신점 상담의 인상을 보여주는 섹션',
             sectionBody: '답답한 문제, 방향성, 속시원한 전달감 같은 특징을 정리하는 슬롯입니다.',
-            points: ['AI 포인트 1', 'AI 포인트 2', 'AI 포인트 3'],
-            cardTitle: 'AI가 정리한 신점 상담 포인트',
+            points: ['마음이 답답해 방향이 안 잡힐 때', '결정을 앞두고 확신이 필요할 때', '현실적인 조언과 직관을 함께 듣고 싶을 때'],
+            cardTitle: '신점 상담의 흐름을 담아냅니다',
             cardBody: '내담자가 기대할 수 있는 상담 흐름과 메시지 톤을 이 카드에 담습니다.',
-            closingTitle: 'AI가 마무리 문구를 작성하는 영역',
+            closingTitle: '조심스럽고 또렷하게, 필요한 답을 정리합니다',
             closingBody: '짧은 권유 문장이나 상담 핵심 메시지가 마지막에 들어갑니다.',
             portraitPlaceholder: '신점 상담사 프로필 이미지',
-            moodPlaceholder: '신점 분위기 이미지'
+            moodPlaceholder: '신점 무드 이미지'
         }
     };
 
-    function setStatus(message, type = 'idle') {
-        aiStatus.textContent = message;
-        aiStatus.dataset.state = type;
+    function setStatus(target, message, type = 'idle') {
+        target.textContent = message;
+        target.dataset.state = type;
     }
 
     function applyTheme(themeName) {
@@ -369,12 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const imageStyle = aiImageStyle.value.trim();
 
         if (!name || !specialty || !tone || !career) {
-            setStatus('상담사명, 전문분야, 상담 톤, 경력/강점을 먼저 입력해주세요.', 'error');
+            setStatus(aiStatus, '상담사명, 전문분야, 상담 톤, 경력/강점을 먼저 입력해주세요.', 'error');
             return;
         }
 
         aiGenerateButton.disabled = true;
-        setStatus('AI가 프로필 문구와 이미지를 생성하는 중입니다...', 'loading');
+        setStatus(aiStatus, 'AI가 직접 입력 정보를 바탕으로 소개 페이지를 생성하는 중입니다...', 'loading');
 
         try {
             const response = await fetch('/api/generate-profile', {
@@ -400,15 +407,62 @@ document.addEventListener('DOMContentLoaded', () => {
             const element = replaceCanvasWithElement(templateType);
             fillPresentation(element, data.profile);
 
-            if (data.usage) {
-                setStatus(`생성이 완료되었습니다. 오늘 사용량 ${data.usage.used}/${data.usage.limit}`, 'success');
-            } else {
-                setStatus('생성이 완료되었습니다.', 'success');
-            }
+            setStatus(
+                aiStatus,
+                data.usage ? `생성이 완료되었습니다. 오늘 사용량 ${data.usage.used}/${data.usage.limit}` : '생성이 완료되었습니다.',
+                'success'
+            );
         } catch (error) {
-            setStatus(error.message || 'AI 생성 중 오류가 발생했습니다.', 'error');
+            setStatus(aiStatus, error.message || 'AI 생성 중 오류가 발생했습니다.', 'error');
         } finally {
             aiGenerateButton.disabled = false;
+        }
+    }
+
+    async function requestPptGeneration() {
+        const file = pptFile.files[0];
+        const templateType = pptTemplate.value;
+        const templateConfig = templates[templateType];
+
+        if (!file) {
+            setStatus(pptStatus, '먼저 PPT 파일(.pptx)을 선택해주세요.', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('pptFile', file);
+        formData.append('templateType', templateType);
+        formData.append('imageStyle', pptImageStyle.value.trim());
+        formData.append('generateImage', String(pptGenerateImage.checked));
+
+        pptGenerateButton.disabled = true;
+        setStatus(pptStatus, 'PPT 내용을 분석하고 완성형 소개 페이지를 재구성하는 중입니다...', 'loading');
+
+        try {
+            const response = await fetch('/api/generate-from-ppt', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'PPT 생성 요청에 실패했습니다.');
+            }
+
+            applyTheme(templateConfig.theme);
+            const element = replaceCanvasWithElement(templateType);
+            fillPresentation(element, data.profile);
+
+            const slideMessage = data.meta?.slidesCount ? `슬라이드 ${data.meta.slidesCount}장 분석 완료.` : '';
+            setStatus(
+                pptStatus,
+                `${slideMessage} ${data.usage ? `오늘 사용량 ${data.usage.used}/${data.usage.limit}` : '생성이 완료되었습니다.'}`.trim(),
+                'success'
+            );
+        } catch (error) {
+            setStatus(pptStatus, error.message || 'PPT 생성 중 오류가 발생했습니다.', 'error');
+        } finally {
+            pptGenerateButton.disabled = false;
         }
     }
 
@@ -458,8 +512,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!window.confirm('캔버스에 추가한 모든 블록을 지울까요?')) return;
         canvas.innerHTML = `
             <div class="pb-empty-state">
-                <div class="pb-empty-icon">드래그</div>
-                <p>왼쪽 블록을 끌어와 프로필을 만들거나, AI 프로필 생성 버튼으로 바로 시작하세요.</p>
+                <div class="pb-empty-icon">PPT</div>
+                <p>PPT 업로드 생성 버튼으로 시작하거나, 왼쪽 블록을 끌어와 직접 조합해보세요.</p>
             </div>`;
     });
 
@@ -490,12 +544,13 @@ ${cleanCanvas.innerHTML}
                 copyButton.innerText = '복사하기';
                 copyButton.style.background = '#007acc';
             }, 2000);
-        } catch (error) {
+        } catch {
             codeOutput.select();
             document.execCommand('copy');
         }
     });
 
     aiGenerateButton.addEventListener('click', requestAiProfile);
+    pptGenerateButton.addEventListener('click', requestPptGeneration);
     applyTheme('pb-theme-sinjeom');
 });
