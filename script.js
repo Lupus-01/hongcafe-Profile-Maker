@@ -40,14 +40,14 @@ document.addEventListener('DOMContentLoaded', () => {
             variant: 'tarot',
             eyebrow: 'Tarot Editorial',
             headline: '타로를 보면, 숨겨진 마음의 결이 보입니다',
-            intro: '상담사의 성향과 강점을 기준으로 소개 문구가 자동으로 들어갑니다.',
+            intro: '타로를 통해 관계와 감정의 흐름을 읽고, 지금 필요한 방향을 차분하게 정리합니다.',
             sectionTitle: '전화타로, 어떤 점이 매력적인가요?',
-            sectionBody: '속마음, 재회, 관계 흐름처럼 상담의 강점을 설명하는 본문 슬롯입니다.',
-            points: ['상대방의 속마음이 궁금할 때', '막막한 관계의 방향이 필요할 때', '혼자 정리하기 어려운 감정일 때'],
-            cardTitle: '전화로도 충분히 깊은 타로 상담',
-            cardBody: '전화 상담의 장점, 접근 방식, 추천 대상을 이 카드에 담습니다.',
+            sectionBody: '속마음과 관계 흐름처럼 말로 설명하기 어려운 감정의 결을 함께 정리하는 상담에 강점이 있습니다.',
+            points: ['상대방의 속마음이 궁금할 때', '막막한 관계의 방향을 알고 싶을 때', '감정을 차분히 정리하고 싶을 때'],
+            cardTitle: '전화로도 충분히 깊이 있는 타로 상담',
+            cardBody: '편한 공간에서 부담 없이 이야기하며 핵심을 정리하고 방향을 함께 읽어드립니다.',
             closingTitle: '편하게 이야기 나누며 속마음을 읽어봅니다',
-            closingBody: '짧은 안내나 CTA 문구가 마지막 문단에 들어갑니다.',
+            closingBody: '자동 이미지가 비어 있으면 카드 영역을 눌러 직접 이미지를 넣을 수 있습니다.',
             portraitPlaceholder: '타로 상담사 프로필 이미지',
             moodPlaceholder: '타로 무드 이미지'
         },
@@ -55,15 +55,15 @@ document.addEventListener('DOMContentLoaded', () => {
             theme: 'pb-theme-saju',
             variant: 'saju',
             eyebrow: 'Saju Editorial',
-            headline: '사주는 흐름을 읽고, 지금의 방향을 정리합니다',
-            intro: '사주 상담사의 해석 스타일과 강점을 바탕으로 소개 문구를 자동 생성합니다.',
-            sectionTitle: '사주 상담이 필요한 순간을 정리합니다',
-            sectionBody: '성향, 시기, 흐름에 강한 상담인지 설명하는 본문 슬롯입니다.',
-            points: ['올해 흐름이 궁금할 때', '직업과 진로 방향이 헷갈릴 때', '관계 흐름을 현실적으로 보고 싶을 때'],
-            cardTitle: '사주를 통해 지금의 결을 읽습니다',
-            cardBody: '직업, 연애, 대인관계, 운 흐름 같은 보조 설명을 이 카드에 담습니다.',
-            closingTitle: '사주로 현재와 다음 흐름을 선명하게 봅니다',
-            closingBody: '부담 없는 권유 문구와 상담의 핵심 가치가 마지막에 들어갑니다.',
+            headline: '사주의 흐름을 읽고, 지금의 방향을 정리합니다',
+            intro: '사주의 기운과 흐름을 바탕으로 현재 고민을 구조적으로 정리하고 현실적인 방향을 제안합니다.',
+            sectionTitle: '사주 상담이 필요한 순간을 짚어드립니다',
+            sectionBody: '직업, 진로, 시기, 관계처럼 흐름을 보고 판단해야 하는 고민에 특히 잘 맞는 형식입니다.',
+            points: ['올해 흐름이 궁금할 때', '진로와 직업 방향이 막힐 때', '관계와 시기를 함께 보고 싶을 때'],
+            cardTitle: '사주를 통해 현재와 다음 흐름을 읽습니다',
+            cardBody: '복잡한 고민도 큰 흐름과 세부 포인트를 나눠 이해하기 쉽게 풀어드립니다.',
+            closingTitle: '지금의 흐름을 정리하고 다음 방향을 준비합니다',
+            closingBody: '자동 이미지가 비어 있으면 상담사 이미지와 무드 이미지를 직접 업로드할 수 있습니다.',
             portraitPlaceholder: '사주 상담사 프로필 이미지',
             moodPlaceholder: '사주 무드 이미지'
         },
@@ -71,23 +71,35 @@ document.addEventListener('DOMContentLoaded', () => {
             theme: 'pb-theme-sinjeom',
             variant: 'sinjeom',
             eyebrow: 'Sinjeom Editorial',
-            headline: '신점은 답답한 마음에 방향을 비춥니다',
-            intro: '전달 방식과 분위기에 맞춘 신점 소개 문구가 자동 생성됩니다.',
-            sectionTitle: '신점 상담의 인상을 보여주는 섹션',
-            sectionBody: '답답한 문제, 방향성, 속시원한 전달감 같은 특징을 정리하는 슬롯입니다.',
-            points: ['마음이 답답해 방향이 안 잡힐 때', '결정을 앞두고 확신이 필요할 때', '현실적인 조언과 직관을 함께 듣고 싶을 때'],
-            cardTitle: '신점 상담의 흐름을 담아냅니다',
-            cardBody: '내담자가 기대할 수 있는 상담 흐름과 메시지 톤을 이 카드에 담습니다.',
-            closingTitle: '조심스럽고 또렷하게, 필요한 답을 정리합니다',
-            closingBody: '짧은 권유 문장이나 상담 핵심 메시지가 마지막에 들어갑니다.',
+            headline: '신점은 답답한 마음의 방향을 비춰줍니다',
+            intro: '복잡한 상황에서 놓치기 쉬운 신호를 차분하게 짚고, 지금 필요한 선택의 방향을 정리합니다.',
+            sectionTitle: '신점 상담이 특히 필요한 순간',
+            sectionBody: '결정을 앞두고 있거나 답답한 흐름이 길어질 때, 마음의 중심을 다시 잡는 상담에 어울립니다.',
+            points: ['답답한 상황의 방향이 궁금할 때', '결정을 앞두고 확신이 필요할 때', '현실적인 조언과 흐름을 함께 보고 싶을 때'],
+            cardTitle: '신점 상담은 흐름과 메시지를 함께 정리합니다',
+            cardBody: '막연한 불안보다 지금 필요한 포인트를 구체적으로 짚는 데 초점을 둡니다.',
+            closingTitle: '필요한 답을 차분하게 정리해드립니다',
+            closingBody: 'AI 이미지가 생성되지 않아도 이미지 영역을 눌러 직접 업로드할 수 있습니다.',
             portraitPlaceholder: '신점 상담사 프로필 이미지',
             moodPlaceholder: '신점 무드 이미지'
         }
     };
 
     function setStatus(target, message, type = 'idle') {
+        if (!target) return;
         target.textContent = message;
         target.dataset.state = type;
+    }
+
+    function buildGenerationStatus(baseMessage, usage, imageMeta) {
+        const usageMessage = usage ? ` 오늘 사용량 ${usage.used}/${usage.limit}` : '';
+
+        if (imageMeta?.requested && !imageMeta?.hasAnyImage) {
+            const imageMessage = imageMeta.message || '이미지는 프로필 빌더에서 직접 업로드할 수 있습니다.';
+            return `${baseMessage}${usageMessage} 텍스트는 정상 생성되었고, 이미지는 자동 생성되지 않아 직접 업로드로 이어서 작업할 수 있습니다. ${imageMessage}`;
+        }
+
+        return `${baseMessage}${usageMessage}`;
     }
 
     function applyTheme(themeName) {
@@ -101,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         button.classList.add('active');
         currentBrandColor = button.dataset.color;
         currentBrandBg = button.dataset.bg;
+
         if (currentBrandColor === '#6335B4') currentBrandLight = '#ece5f7';
         else if (currentBrandColor === '#D67A00') currentBrandLight = '#faecd6';
         else currentBrandLight = '#fbe6e8';
@@ -159,76 +172,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             <img class="pb-uploaded-img" src="" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid ${currentBrandLight}; display:none;">
                         </div>
                         <div class="profile_name" style="margin-top:12px; font-size:28px; font-weight:800; color:#111;" contenteditable="true">상담사 이름</div>
-                        <div class="profile_text" style="margin-top:8px; font-size:15px; font-weight:600; color:${currentBrandColor};" contenteditable="true">대표 전문 분야와 한 줄 소개</div>
-                    </div>`;
-            case 'stats':
-                return `
-                    <div style="display:flex; justify-content:space-around; background:#fff; padding:24px 10px; border-radius:16px; border:1px solid #eaeaea; margin-bottom:24px; text-align:center;">
-                        <div style="flex:1"><span style="display:block; font-size:22px; font-weight:800; color:${currentBrandColor}; margin-bottom:4px;" contenteditable="true">12년</span><span style="font-size:12px; color:#666; font-weight:500;" contenteditable="true">상담 경력</span></div>
-                        <div style="flex:1"><span style="display:block; font-size:22px; font-weight:800; color:${currentBrandColor}; margin-bottom:4px;" contenteditable="true">3만+</span><span style="font-size:12px; color:#666; font-weight:500;" contenteditable="true">누적 상담</span></div>
-                        <div style="flex:1"><span style="display:block; font-size:22px; font-weight:800; color:${currentBrandColor}; margin-bottom:4px;" contenteditable="true">98%</span><span style="font-size:12px; color:#666; font-weight:500;" contenteditable="true">재상담율</span></div>
-                    </div>`;
-            case 'specialty':
-                return `
-                    <div style="background:#fff; border:1px solid ${currentBrandLight}; border-radius:16px; padding:24px; margin-bottom:24px;">
-                        <h4 style="margin:0 0 16px 0; color:${currentBrandColor}; font-size:16px; text-align:center; font-weight:800;" contenteditable="true">주요 전문 분야</h4>
-                        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
-                            <li style="font-size:15px; color:#222; display:flex; gap:8px;" contenteditable="true"><span style="color:${currentBrandColor}; font-weight:bold;">•</span> 관계와 속마음</li>
-                            <li style="font-size:15px; color:#222; display:flex; gap:8px;" contenteditable="true"><span style="color:${currentBrandColor}; font-weight:bold;">•</span> 재회와 흐름 분석</li>
-                        </ul>
-                    </div>`;
-            case 'highlight':
-                return `
-                    <div style="background:${currentBrandLight}; padding:24px; border-radius:12px; text-align:center; margin-bottom:24px;">
-                        <div style="font-weight:800; font-size:18px; color:${currentBrandColor}; margin-bottom:10px;" contenteditable="true">이런 분께 추천합니다</div>
-                        <div style="font-size:14px; color:#333; line-height:1.5;" contenteditable="true">답답한 관계를 정리하고 지금 필요한 방향을 또렷하게 알고 싶은 분.</div>
-                    </div>`;
-            case 'letter':
-                return `
-                    <div style="background:${currentBrandLight}; border-radius:16px; padding:32px 24px; margin-bottom:24px; text-align:center;">
-                        <div style="font-size:28px; margin-bottom:12px;">💌</div>
-                        <div style="font-size:18px; font-weight:800; color:${currentBrandColor}; margin-bottom:16px;" contenteditable="true">상담사 한마디</div>
-                        <div style="font-size:15px; line-height:1.8; color:#333;" contenteditable="true">지금 가장 답답한 한 지점부터 차분하게 함께 정리해드릴게요.</div>
-                    </div>`;
-            case 'catchphrase':
-                return `<div style="text-align:center; color:${currentBrandColor}; font-size:24px; font-weight:800; margin:40px 0; line-height:1.4; word-break:keep-all;" contenteditable="true">복잡한 마음의 흐름을<br>한 번에 읽어드립니다</div>`;
-            case 'qa':
-                return `
-                    <div class="profile-section" style="margin-bottom:24px;">
-                        <div class="subject" style="margin-top:32px;">
-                            <div class="number" style="width:32px; height:32px; background:${currentBrandColor}; color:#fff; font-size:14px; font-weight:600; line-height:32px; border-radius:16px 16px 16px 0; text-align:center; margin-bottom:10px;">Q</div>
-                            <div class="subject_text" style="margin-top:6px; font-size:20px; font-weight:bold; line-height:1.4; color:#111;" contenteditable="true">어떤 고민 상담에 특히 강한가요?</div>
-                            <p class="content_text" style="margin-top:16px; margin-bottom:24px; padding:0 10px; text-align:left; line-height:1.6; font-size:15px; color:#444;" contenteditable="true">상대방의 마음, 관계 흐름, 재회 가능성처럼 감정의 결이 중요한 상담에 강합니다.</p>
-                        </div>
-                    </div>`;
-            case 'review':
-                return `
-                    <div style="background:#fff; padding:24px; border-radius:16px; border:1px solid #eaeaea; position:relative; margin-bottom:24px; text-align:left;">
-                        <div style="font-size:12px; color:#666; background:#f5f5f5; padding:4px 10px; border-radius:20px; display:inline-block; font-weight:600; margin-bottom:12px;" contenteditable="true">30대 여성 / 연애 상담</div>
-                        <div style="color:${currentBrandColor}; font-size:14px; margin-bottom:8px; letter-spacing:2px;">★★★★★</div>
-                        <div style="font-weight:800; font-size:17px; margin-bottom:8px; color:#111; line-height:1.4;" contenteditable="true">답답했던 흐름이 한 번에 정리됐어요.</div>
-                        <div style="font-size:14.5px; color:#444; line-height:1.6;" contenteditable="true">상대방 마음을 너무 단정하지 않게 풀어주셔서 오히려 더 현실적으로 받아들일 수 있었습니다.</div>
+                        <div class="profile_text" style="margin-top:8px; font-size:15px; font-weight:600; color:${currentBrandColor};" contenteditable="true">대표 소개 문구</div>
                     </div>`;
             case 'text':
-                return `<div style="font-size:15px; padding:0 10px; margin-bottom:24px; color:#333; line-height:1.7;" contenteditable="true">본문 텍스트를 입력하는 영역입니다.</div>`;
-            case 'quote':
-                return `<blockquote style="margin:24px 0; padding:16px 20px; border-left:4px solid ${currentBrandColor}; background:${currentBrandLight}; border-radius:0 12px 12px 0; font-style:italic; font-weight:500; font-size:15px; color:#222;" contenteditable="true">마음의 답은 이미 흐르고 있고, 상담은 그 흐름을 읽는 과정입니다.</blockquote>`;
-            case 'hashtag':
-                return `<div class="pb-el-hashtags"><span contenteditable="true">#속마음상담</span><span contenteditable="true">#재회상담</span><span contenteditable="true">#관계흐름</span></div>`;
+                return `<div style="font-size:15px; padding:0 10px; margin-bottom:24px; color:#333; line-height:1.7;" contenteditable="true">본문 텍스트를 입력하세요.</div>`;
             case 'image':
                 return `
                     <div class="pb-image-uploadable" style="width:100%; text-align:center; margin-bottom:24px; cursor:pointer;">
-                        <div class="pb-upload-placeholder" style="width:100%; height:200px; background:#eaeaea; border:1px dashed #ccc; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#888;">클릭해서 이미지 첨부</div>
+                        <div class="pb-upload-placeholder" style="width:100%; height:200px; background:#eaeaea; border:1px dashed #ccc; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#888;">클릭해서 이미지 업로드</div>
                         <img class="pb-uploaded-img" src="" style="width:100%; max-width:600px; border-radius:12px; display:none; margin:0 auto;">
                     </div>`;
-            case 'title-divider':
-                return `<div style="display:flex; align-items:center; text-align:center; color:${currentBrandColor}; font-weight:800; font-size:16px; margin:40px 0;"><hr style="flex:1; border:none; border-bottom:1px solid ${currentBrandColor}; opacity:0.3; margin:0 15px;"><span contenteditable="true">상담 안내</span><hr style="flex:1; border:none; border-bottom:1px solid ${currentBrandColor}; opacity:0.3; margin:0 15px;"></div>`;
-            case 'icon-divider':
-                return `<div class="pb-el-icon-divider">✦ ✦ ✦</div>`;
             case 'divider':
                 return `<hr style="border:none; border-top:1px solid #eaeaea; margin:40px auto; width:60%;">`;
             case 'spacer':
-                return `<div class="pb-el-spacer" style="height:50px; width:100%; border:1px dashed #ccc; text-align:center; line-height:50px; color:#999; font-size:12px;">투명 여백</div>`;
+                return `<div style="height:40px;"></div>`;
             case 'tarot-ppt':
             case 'saju-ppt':
             case 'sinjeom-ppt':
@@ -305,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.entries(slotMap).forEach(([slot, value]) => {
             if (!value) return;
             const node = element.querySelector(`[data-slot="${slot}"]`);
-            if (node) node.innerHTML = value.replace(/\n/g, '<br>');
+            if (node) node.innerHTML = String(value).replace(/\n/g, '<br>');
         });
 
         if (Array.isArray(payload.bulletPoints)) {
@@ -381,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         aiGenerateButton.disabled = true;
-        setStatus(aiStatus, 'AI가 직접 입력 정보를 바탕으로 소개 페이지를 생성하는 중입니다...', 'loading');
+        setStatus(aiStatus, 'AI가 입력한 정보를 바탕으로 소개 페이지를 생성하는 중입니다...', 'loading');
 
         try {
             const response = await fetch('/api/generate-profile', {
@@ -407,11 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const element = replaceCanvasWithElement(templateType);
             fillPresentation(element, data.profile);
 
-            setStatus(
-                aiStatus,
-                data.usage ? `생성이 완료되었습니다. 오늘 사용량 ${data.usage.used}/${data.usage.limit}` : '생성이 완료되었습니다.',
-                'success'
-            );
+            setStatus(aiStatus, buildGenerationStatus('생성이 완료되었습니다.', data.usage, data.imageMeta), 'success');
         } catch (error) {
             setStatus(aiStatus, error.message || 'AI 생성 중 오류가 발생했습니다.', 'error');
         } finally {
@@ -436,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('generateImage', String(pptGenerateImage.checked));
 
         pptGenerateButton.disabled = true;
-        setStatus(pptStatus, 'PPT 내용을 분석하고 완성형 소개 페이지를 재구성하는 중입니다...', 'loading');
+        setStatus(pptStatus, 'PPT 내용을 분석하고 완성형 소개 페이지를 구성하는 중입니다...', 'loading');
 
         try {
             const response = await fetch('/api/generate-from-ppt', {
@@ -456,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const slideMessage = data.meta?.slidesCount ? `슬라이드 ${data.meta.slidesCount}장 분석 완료.` : '';
             setStatus(
                 pptStatus,
-                `${slideMessage} ${data.usage ? `오늘 사용량 ${data.usage.used}/${data.usage.limit}` : '생성이 완료되었습니다.'}`.trim(),
+                buildGenerationStatus(`${slideMessage} 생성이 완료되었습니다.`.trim(), data.usage, data.imageMeta),
                 'success'
             );
         } catch (error) {
@@ -499,58 +452,49 @@ document.addEventListener('DOMContentLoaded', () => {
         event.target.value = '';
     });
 
-    document.getElementById('pb-preview-btn').addEventListener('click', () => {
+    document.getElementById('pb-preview-btn')?.addEventListener('click', () => {
         previewArea.innerHTML = '';
         previewArea.style.backgroundColor = currentBrandBg;
         previewArea.appendChild(getCleanCanvasClone());
         previewModal.classList.add('active');
     });
 
-    document.getElementById('pb-close-modal').addEventListener('click', () => previewModal.classList.remove('active'));
+    document.getElementById('pb-close-modal')?.addEventListener('click', () => previewModal.classList.remove('active'));
 
-    document.getElementById('pb-clear-btn').addEventListener('click', () => {
-        if (!window.confirm('캔버스에 추가한 모든 블록을 지울까요?')) return;
+    document.getElementById('pb-clear-btn')?.addEventListener('click', () => {
+        if (!window.confirm('캔버스의 모든 블록을 지울까요?')) return;
         canvas.innerHTML = `
             <div class="pb-empty-state">
                 <div class="pb-empty-icon">PPT</div>
-                <p>PPT 업로드 생성 버튼으로 시작하거나, 왼쪽 블록을 끌어와 직접 조합해보세요.</p>
+                <p>PPT 업로드 생성 버튼으로 시작하거나, 왼쪽 블록을 끌어와 직접 구성해보세요.</p>
             </div>`;
     });
 
-    document.getElementById('pb-export-btn').addEventListener('click', () => {
-        const cleanCanvas = getCleanCanvasClone();
-        cleanCanvas.querySelectorAll('.pb-el-spacer').forEach((node) => {
-            node.innerHTML = '';
-            node.style.border = 'none';
-        });
-
-        codeOutput.value = `
-<center>
-<div class="profile_v02" style="font-family:'Noto Sans KR', sans-serif; margin-top:0; max-width:600px; text-align:left; line-height:1.6; color:#111;">
-${cleanCanvas.innerHTML}
-</div>
-</center>`.trim();
+    document.getElementById('pb-export-btn')?.addEventListener('click', () => {
+        const clone = getCleanCanvasClone();
+        const wrapper = document.createElement('div');
+        wrapper.appendChild(clone);
+        codeOutput.value = wrapper.innerHTML.trim();
         codeModal.classList.add('active');
     });
 
-    document.getElementById('pb-close-code-modal').addEventListener('click', () => codeModal.classList.remove('active'));
+    document.getElementById('pb-close-code-modal')?.addEventListener('click', () => codeModal.classList.remove('active'));
 
-    copyButton.addEventListener('click', async () => {
+    copyButton?.addEventListener('click', async () => {
         try {
             await navigator.clipboard.writeText(codeOutput.value);
-            copyButton.innerText = '복사 완료';
-            copyButton.style.background = '#28a745';
+            copyButton.textContent = '복사됨';
             setTimeout(() => {
-                copyButton.innerText = '복사하기';
-                copyButton.style.background = '#007acc';
-            }, 2000);
+                copyButton.textContent = '복사하기';
+            }, 1200);
         } catch {
-            codeOutput.select();
-            document.execCommand('copy');
+            window.alert('복사에 실패했습니다.');
         }
     });
 
-    aiGenerateButton.addEventListener('click', requestAiProfile);
-    pptGenerateButton.addEventListener('click', requestPptGeneration);
+    aiGenerateButton?.addEventListener('click', requestAiProfile);
+    pptGenerateButton?.addEventListener('click', requestPptGeneration);
+
+    bindUploadables(document.body);
     applyTheme('pb-theme-sinjeom');
 });

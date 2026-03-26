@@ -393,6 +393,51 @@ function validateApiKey(res) {
     return true;
 }
 
+function buildImageMeta(generateImageRequested, profileImage, moodImage, failures) {
+    const filteredFailures = failures.filter(Boolean);
+    const hasAnyImage = Boolean(profileImage || moodImage);
+
+    if (!generateImageRequested) {
+        return {
+            requested: false,
+            success: false,
+            hasAnyImage: false,
+            message: ''
+        };
+    }
+
+    if (hasAnyImage) {
+        return {
+            requested: true,
+            success: true,
+            hasAnyImage: true,
+            message: ''
+        };
+    }
+
+    return {
+        requested: true,
+        success: false,
+        hasAnyImage: false,
+        message: filteredFailures[0] || '이미지 생성에 실패했습니다. 프로필 빌더에서 직접 이미지를 업로드해주세요.'
+    };
+}
+
+function getReadableImageError(error) {
+    const status = error?.status;
+    const message = String(error?.message || '');
+
+    if (status === 429 || message.includes('RESOURCE_EXHAUSTED') || message.includes('Quota exceeded')) {
+        return 'AI 이미지 생성 한도를 초과했습니다. 프로필 빌더에서 직접 이미지를 업로드해주세요.';
+    }
+
+    if (status === 404 || message.includes('NOT_FOUND')) {
+        return '현재 이미지 생성 모델을 사용할 수 없습니다. 프로필 빌더에서 직접 이미지를 업로드해주세요.';
+    }
+
+    return 'AI 이미지 생성에 실패했습니다. 프로필 빌더에서 직접 이미지를 업로드해주세요.';
+}
+
 app.get('/api/health', (_req, res) => {
     const { count } = getUsageState();
     res.json({
@@ -420,18 +465,21 @@ app.post('/api/generate-profile', async (req, res) => {
         const profile = await generateProfileTextFromInput(payload);
         let profileImage = '';
         let moodImage = '';
+        const imageFailures = [];
 
         if (payload.generateImage) {
             try {
                 profileImage = await generatePortraitImage(payload, `${payload.name} / ${payload.specialty}`);
             } catch (imageError) {
                 console.error('Portrait image generation failed:', imageError);
+                imageFailures.push(getReadableImageError(imageError));
             }
 
             try {
                 moodImage = await generateMoodImage(payload, `${payload.specialty} / ${payload.tone}`);
             } catch (imageError) {
                 console.error('Mood image generation failed:', imageError);
+                imageFailures.push(getReadableImageError(imageError));
             }
         }
 
@@ -442,6 +490,7 @@ app.post('/api/generate-profile', async (req, res) => {
                 profileImage,
                 moodImage
             },
+            imageMeta: buildImageMeta(payload.generateImage, profileImage, moodImage, imageFailures),
             usage
         });
     } catch (error) {
@@ -475,18 +524,21 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
         const profile = await generateProfileTextFromPpt(payload, pptInfo);
         let profileImage = '';
         let moodImage = '';
+        const imageFailures = [];
 
         if (String(payload.generateImage) === 'true') {
             try {
                 profileImage = await generatePortraitImage(payload, pptInfo.combinedText.slice(0, 1500));
             } catch (imageError) {
                 console.error('Portrait image generation failed:', imageError);
+                imageFailures.push(getReadableImageError(imageError));
             }
 
             try {
                 moodImage = await generateMoodImage(payload, pptInfo.combinedText.slice(0, 1500));
             } catch (imageError) {
                 console.error('Mood image generation failed:', imageError);
+                imageFailures.push(getReadableImageError(imageError));
             }
         }
 
@@ -497,6 +549,7 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
                 profileImage,
                 moodImage
             },
+            imageMeta: buildImageMeta(String(payload.generateImage) === 'true', profileImage, moodImage, imageFailures),
             usage,
             meta: {
                 slidesCount: pptInfo.slides.length
