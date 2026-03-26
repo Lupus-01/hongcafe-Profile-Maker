@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const templateConfig = templates[templateType];
 
         if (!file) {
-            setStatus(pptStatus, '먼저 PPT 파일(.pptx)을 선택해주세요.', 'error');
+            setStatus(pptStatus, '먼저 PPT 또는 Excel 파일을 선택해주세요.', 'error');
             return;
         }
 
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('generateImage', String(pptGenerateImage.checked));
 
         pptGenerateButton.disabled = true;
-        setStatus(pptStatus, 'PPT 내용을 분석하고 완성형 소개 페이지를 구성하는 중입니다...', 'loading');
+        setStatus(pptStatus, '문서 내용을 분석하고 완성형 소개 페이지를 구성하는 중입니다...', 'loading');
 
         try {
             const response = await fetch('/api/generate-from-ppt', {
@@ -435,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.error || 'PPT 생성 요청에 실패했습니다.');
+                throw new Error(data.error || '문서 생성 요청에 실패했습니다.');
             }
 
             applyTheme(templateConfig.theme);
@@ -443,14 +443,16 @@ document.addEventListener('DOMContentLoaded', () => {
             fillPresentation(element, data.profile);
 
             const slideMessage = data.meta?.slidesCount ? `슬라이드 ${data.meta.slidesCount}장 분석 완료.` : '';
+            const sheetMessage = data.meta?.sheetsCount ? `시트 ${data.meta.sheetsCount}개 분석 완료.` : '';
+            const sourceMessage = [slideMessage, sheetMessage].filter(Boolean).join(' ');
             setStatus(
                 pptStatus,
-                buildGenerationStatus(`${slideMessage} 생성이 완료되었습니다.`.trim(), data.usage, data.imageMeta),
+                buildGenerationStatus(`${sourceMessage} 생성이 완료되었습니다.`.trim(), data.usage, data.imageMeta),
                 'success'
             );
             renderImageIssue(pptImageIssue, data.imageMeta);
         } catch (error) {
-            setStatus(pptStatus, error.message || 'PPT 생성 중 오류가 발생했습니다.', 'error');
+            setStatus(pptStatus, error.message || '문서 생성 중 오류가 발생했습니다.', 'error');
             renderImageIssue(pptImageIssue, null);
         } finally {
             pptGenerateButton.disabled = false;
@@ -503,8 +505,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!window.confirm('캔버스의 모든 블록을 지울까요?')) return;
         canvas.innerHTML = `
             <div class="pb-empty-state">
-                <div class="pb-empty-icon">PPT</div>
-                <p>PPT 업로드 생성 버튼으로 시작하거나, 왼쪽 블록을 끌어와 직접 구성해보세요.</p>
+                <div class="pb-empty-icon">DOC</div>
+                <p>문서 업로드 생성 버튼으로 시작하거나, 왼쪽 블록을 끌어와 직접 구성해보세요.</p>
             </div>`;
     });
 

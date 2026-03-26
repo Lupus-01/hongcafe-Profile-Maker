@@ -11,7 +11,7 @@
         <aside class="pb-sidebar">
             <div class="pb-sidebar-header">
                 <h2>프로필 빌더 <span>V7</span></h2>
-                <p>PPT 내용을 바탕으로 상담사 소개 페이지를 자동 구성합니다.</p>
+                <p>PPT 또는 Excel 내용을 바탕으로 상담사 소개 페이지를 자동 구성합니다.</p>
             </div>
 
             <div class="pb-section">
@@ -24,8 +24,8 @@
 
             <section class="pb-section pb-ai-panel">
                 <div class="pb-ai-header">
-                    <h3>PPT 업로드 생성</h3>
-                    <span class="pb-ai-badge">우선 지원 .pptx</span>
+                    <h3>문서 업로드 생성</h3>
+                    <span class="pb-ai-badge">지원 .pptx / .xlsx</span>
                 </div>
                 <div class="pb-ai-form">
                     <label class="pb-ai-field">
@@ -37,8 +37,8 @@
                         </select>
                     </label>
                     <label class="pb-ai-field">
-                        <span>PPT 파일 업로드</span>
-                        <input id="pb-ppt-file" type="file" accept=".pptx,.ppt,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint">
+                        <span>PPT / Excel 파일 업로드</span>
+                        <input id="pb-ppt-file" type="file" accept=".pptx,.xlsx,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
                     </label>
                     <label class="pb-ai-field">
                         <span>이미지 생성 스타일</span>
@@ -48,8 +48,8 @@
                         <input id="pb-ppt-generate-image" type="checkbox" checked>
                         <span>대표 프로필 이미지 자동 생성</span>
                     </label>
-                    <button id="pb-ppt-generate-btn" class="pb-action-btn primary" type="button">PPT로 결과 생성</button>
-                    <p id="pb-ppt-status" class="pb-ai-status">PPT 내용을 읽어 웹용 소개 페이지로 재구성합니다.</p>
+                    <button id="pb-ppt-generate-btn" class="pb-action-btn primary" type="button">문서로 결과 생성</button>
+                    <p id="pb-ppt-status" class="pb-ai-status">PPT 또는 Excel 내용을 읽어 웹용 소개 페이지로 재구성합니다.</p>
                     <div id="pb-ppt-image-issue" class="pb-issue-panel" hidden></div>
                 </div>
             </section>
@@ -130,8 +130,8 @@
         <main class="pb-canvas-wrapper">
             <div class="pb-canvas" id="pb-canvas">
                 <div class="pb-empty-state">
-                    <div class="pb-empty-icon">PPT</div>
-                    <p>PPT 업로드 생성 버튼으로 시작하거나, 왼쪽 블록을 끌어와 직접 구성해보세요.</p>
+                    <div class="pb-empty-icon">DOC</div>
+                    <p>문서 업로드 생성 버튼으로 시작하거나, 왼쪽 블록을 끌어와 직접 구성해보세요.</p>
                 </div>
             </div>
         </main>

@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import multer from 'multer';
 import AdmZip from 'adm-zip';
+import XLSX from 'xlsx';
 import { GoogleGenAI } from '@google/genai';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -208,6 +209,32 @@ function parsePptxBuffer(buffer) {
     return {
         slides,
         combinedText: slides.map((slide) => `[slide ${slide.index}]\n${slide.text}`).join('\n\n')
+    };
+}
+
+function parseXlsxBuffer(buffer) {
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const sheets = workbook.SheetNames.map((sheetName) => {
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, {
+            header: 1,
+            blankrows: false,
+            defval: ''
+        });
+
+        const lines = rows
+            .map((row) => row.map((cell) => String(cell || '').trim()).filter(Boolean).join(' | '))
+            .filter(Boolean);
+
+        return {
+            name: sheetName,
+            text: lines.join('\n')
+        };
+    }).filter((sheet) => sheet.text.trim());
+
+    return {
+        sheets,
+        combinedText: sheets.map((sheet) => `[sheet ${sheet.name}]\n${sheet.text}`).join('\n\n')
     };
 }
 
@@ -506,36 +533,44 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
     const file = req.file;
 
     if (!file) {
-        return res.status(400).json({ error: 'PPT 파일이 업로드되지 않았습니다.' });
+        return res.status(400).json({ error: '문서 파일이 업로드되지 않았습니다.' });
     }
 
-    if (!file.originalname.toLowerCase().endsWith('.pptx')) {
-        return res.status(400).json({ error: '현재는 .pptx 형식만 지원합니다.' });
+    const lowerFileName = file.originalname.toLowerCase();
+    const isPptx = lowerFileName.endsWith('.pptx');
+    const isXlsx = lowerFileName.endsWith('.xlsx');
+
+    if (!isPptx && !isXlsx) {
+        return res.status(400).json({ error: '현재는 .pptx 와 .xlsx 형식만 지원합니다.' });
     }
 
     if (!validateUsage(res) || !validateApiKey(res)) return;
 
     try {
-        const pptInfo = parsePptxBuffer(file.buffer);
-        if (!pptInfo.slides.length) {
-            return res.status(400).json({ error: 'PPT에서 읽을 수 있는 텍스트를 찾지 못했습니다.' });
+        const parsedDocument = isPptx ? parsePptxBuffer(file.buffer) : parseXlsxBuffer(file.buffer);
+        const itemCount = isPptx ? parsedDocument.slides.length : parsedDocument.sheets.length;
+
+        if (!itemCount) {
+            return res.status(400).json({
+                error: isPptx ? 'PPT에서 읽을 수 있는 텍스트를 찾지 못했습니다.' : '엑셀에서 읽을 수 있는 텍스트를 찾지 못했습니다.'
+            });
         }
 
-        const profile = await generateProfileTextFromPpt(payload, pptInfo);
+        const profile = await generateProfileTextFromPpt(payload, parsedDocument);
         let profileImage = '';
         let moodImage = '';
         const imageFailures = [];
 
         if (String(payload.generateImage) === 'true') {
             try {
-                profileImage = await generatePortraitImage(payload, pptInfo.combinedText.slice(0, 1500));
+                profileImage = await generatePortraitImage(payload, parsedDocument.combinedText.slice(0, 1500));
             } catch (imageError) {
                 console.error('Portrait image generation failed:', imageError);
                 imageFailures.push(getReadableImageError(imageError));
             }
 
             try {
-                moodImage = await generateMoodImage(payload, pptInfo.combinedText.slice(0, 1500));
+                moodImage = await generateMoodImage(payload, parsedDocument.combinedText.slice(0, 1500));
             } catch (imageError) {
                 console.error('Mood image generation failed:', imageError);
                 imageFailures.push(getReadableImageError(imageError));
@@ -552,13 +587,15 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
             imageMeta: buildImageMeta(String(payload.generateImage) === 'true', profileImage, moodImage, imageFailures),
             usage,
             meta: {
-                slidesCount: pptInfo.slides.length
+                fileType: isPptx ? 'pptx' : 'xlsx',
+                slidesCount: isPptx ? itemCount : 0,
+                sheetsCount: isXlsx ? itemCount : 0
             }
         });
     } catch (error) {
         console.error(error);
         res.status(500).json({
-            error: 'PPT 분석 또는 AI 구성 중 오류가 발생했습니다.'
+            error: isPptx ? 'PPT 분석 또는 AI 구성 중 오류가 발생했습니다.' : '엑셀 분석 또는 AI 구성 중 오류가 발생했습니다.'
         });
     }
 });
