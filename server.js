@@ -26,6 +26,27 @@ const upload = multer({
     limits: { fileSize: 15 * 1024 * 1024 }
 });
 
+const TEMPLATE_GUIDES = {
+    'tarot-ppt': {
+        labelKo: '타로',
+        labelEn: 'tarot',
+        imageMood: 'soft tarot reader portrait, elegant Korean spiritual consultant, studio portrait, gentle lighting',
+        moodScene: 'warm tarot reading table, candle light, elegant cards, premium editorial still life'
+    },
+    'saju-ppt': {
+        labelKo: '사주',
+        labelEn: 'saju',
+        imageMood: 'professional saju consultant portrait, refined Korean fortune consultant, calm warm lighting, editorial portrait',
+        moodScene: 'refined saju consultation desk, Korean traditional mood, elegant paper and pen, premium editorial still life'
+    },
+    'sinjeom-ppt': {
+        labelKo: '신점',
+        labelEn: 'sinjeom',
+        imageMood: 'confident Korean spiritual advisor portrait, premium studio portrait, calm warm light, elegant styling, trustworthy and refined',
+        moodScene: 'Korean spiritual consultation room, warm candle light, elegant ritual table, premium editorial still life, mystical but clean'
+    }
+};
+
 app.use(cors(FRONTEND_ORIGIN ? { origin: FRONTEND_ORIGIN } : undefined));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(__dirname));
@@ -65,6 +86,10 @@ function incrementUsage() {
     return { used: usage[today], limit: DAILY_PROFILE_LIMIT };
 }
 
+function getTemplateGuide(templateType) {
+    return TEMPLATE_GUIDES[templateType] || TEMPLATE_GUIDES['sinjeom-ppt'];
+}
+
 function parseJsonResponse(rawText) {
     const trimmed = String(rawText || '').trim();
     const withoutFence = trimmed
@@ -89,13 +114,57 @@ async function extractTextFromResponse(response) {
 }
 
 function extractInlineImage(response) {
+    const visited = new WeakSet();
+
+    function walk(node) {
+        if (!node || typeof node !== 'object') return null;
+        if (visited.has(node)) return null;
+        visited.add(node);
+
+        if (node.inlineData?.data) return node.inlineData;
+        if (node.inline_data?.data) return node.inline_data;
+
+        if (Array.isArray(node)) {
+            for (const item of node) {
+                const found = walk(item);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        for (const value of Object.values(node)) {
+            const found = walk(value);
+            if (found) return found;
+        }
+
+        return null;
+    }
+
+    const inlineData = walk(response);
+    if (!inlineData?.data) return '';
+
+    const mimeType = inlineData.mimeType || inlineData.mime_type || 'image/png';
+    return `data:${mimeType};base64,${inlineData.data}`;
+}
+
+function summarizeResponseForLog(response) {
     const candidates = response?.candidates || [];
     const parts = candidates[0]?.content?.parts || [];
-    const imagePart = parts.find((part) => part.inlineData?.data);
-    if (!imagePart) return '';
+    return {
+        candidates: candidates.length,
+        parts: parts.map((part) => ({
+            hasText: Boolean(part?.text),
+            hasInlineData: Boolean(part?.inlineData?.data || part?.inline_data?.data),
+            mimeType: part?.inlineData?.mimeType || part?.inline_data?.mime_type || null
+        }))
+    };
+}
 
-    const mimeType = imagePart.inlineData.mimeType || 'image/png';
-    return `data:${mimeType};base64,${imagePart.inlineData.data}`;
+function sanitizeExtraPrompt(value, maxLength = 700) {
+    return String(value || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, maxLength);
 }
 
 function decodeXmlEntities(value) {
@@ -138,38 +207,19 @@ function parsePptxBuffer(buffer) {
 
     return {
         slides,
-        combinedText: slides.map((slide) => `[슬라이드 ${slide.index}]\n${slide.text}`).join('\n\n')
+        combinedText: slides.map((slide) => `[slide ${slide.index}]\n${slide.text}`).join('\n\n')
     };
-}
-
-function getTemplateGuide(templateType) {
-    const guides = {
-        'tarot-ppt': {
-            label: '타로',
-            imageMood: 'soft tarot reader portrait, elegant Korean spiritual consultant, studio portrait, gentle lighting'
-        },
-        'saju-ppt': {
-            label: '사주',
-            imageMood: 'professional saju consultant portrait, refined Korean fortune consultant, calm warm lighting, editorial portrait'
-        },
-        'sinjeom-ppt': {
-            label: '신점',
-            imageMood: 'confident spiritual advisor portrait, Korean spiritual consultant style, warm light, premium studio portrait'
-        }
-    };
-
-    return guides[templateType] || guides['sinjeom-ppt'];
 }
 
 async function generateProfileTextFromInput(payload) {
     const guide = getTemplateGuide(payload.templateType);
     const prompt = `
-너는 한국어 상담사 프로필 카피라이터다.
-반드시 한국어로만 작성하고, 과장된 단정 표현은 피하고 신뢰감 있는 톤으로 쓴다.
-응답은 JSON만 반환한다. 코드블록 없이 반환한다.
+너는 한국어 상담사 소개 페이지 카피라이터다.
+반드시 한국어로만 작성하고, 과장되거나 단정적인 표현은 피하면서도 매력적인 소개 문구를 만든다.
+응답은 JSON만 반환하고 코드블록은 절대 사용하지 않는다.
 
 입력 정보:
-- 분야: ${guide.label}
+- 분야: ${guide.labelKo}
 - 상담사명: ${payload.name}
 - 전문분야: ${payload.specialty}
 - 상담 톤: ${payload.tone}
@@ -178,11 +228,11 @@ async function generateProfileTextFromInput(payload) {
 반환 스키마:
 {
   "eyebrow": "짧은 브랜딩 문구",
-  "headline": "메인 제목 1개",
-  "intro": "소개 문단 2문장",
-  "sectionTitle": "중간 섹션 제목 1개",
+  "headline": "메인 제목",
+  "intro": "상단 소개 문단 2문장",
+  "sectionTitle": "중간 섹션 제목",
   "sectionBody": "중간 설명 본문 2문장",
-  "bulletPoints": ["짧은 포인트 1", "짧은 포인트 2", "짧은 포인트 3"],
+  "bulletPoints": ["핵심 포인트 1", "핵심 포인트 2", "핵심 포인트 3"],
   "cardTitle": "보조 카드 제목",
   "cardBody": "보조 카드 설명 2문장",
   "closingTitle": "마무리 제목",
@@ -201,12 +251,12 @@ async function generateProfileTextFromInput(payload) {
 async function generateProfileTextFromPpt(payload, pptInfo) {
     const guide = getTemplateGuide(payload.templateType);
     const prompt = `
-너는 한국어 상담사 소개 페이지를 만드는 에디토리얼 카피라이터다.
-사용자가 업로드한 PPT 슬라이드 내용을 바탕으로, 웹 소개 페이지용 문구로 재구성해야 한다.
-톤은 신뢰감 있고 읽기 쉬워야 하며, 원문 내용을 요약하고 정리하되 맥락은 유지한다.
-응답은 JSON만 반환하고 코드블록 없이 출력한다.
+너는 한국어 상담사 소개 페이지를 구성하는 카피라이터다.
+사용자가 업로드한 PPT의 내용에서 핵심 메시지를 추출해서, 상담사 소개 랜딩페이지용 문구로 다시 구성한다.
+PPT 문장을 그대로 복사하지 말고, 소개 페이지 문체로 자연스럽게 재작성한다.
+응답은 JSON만 반환하고 코드블록은 절대 사용하지 않는다.
 
-분야: ${guide.label}
+분야: ${guide.labelKo}
 슬라이드 수: ${pptInfo.slides.length}
 
 PPT 원문:
@@ -215,22 +265,21 @@ ${pptInfo.combinedText}
 반환 스키마:
 {
   "eyebrow": "짧은 브랜딩 문구",
-  "headline": "예시 이미지 같은 큰 메인 카피 1개",
+  "headline": "메인 제목",
   "intro": "상단 소개 문단 2~3문장",
-  "sectionTitle": "중간 섹션 제목 1개",
+  "sectionTitle": "중간 섹션 제목",
   "sectionBody": "중간 설명 본문 2~3문장",
   "bulletPoints": ["핵심 포인트 1", "핵심 포인트 2", "핵심 포인트 3"],
-  "cardTitle": "하단 우측 카드 제목",
-  "cardBody": "하단 우측 카드 설명 2문장",
-  "closingTitle": "마무리 큰 제목",
+  "cardTitle": "보조 카드 제목",
+  "cardBody": "보조 카드 설명 2문장",
+  "closingTitle": "마무리 제목",
   "closingBody": "마무리 설명 2문장"
 }
 
 추가 지침:
-- headline은 강하고 간결해야 한다.
-- bulletPoints는 실제 상담 포인트처럼 짧고 읽기 쉽게 만든다.
-- PPT의 문장을 그대로 붙이기보다 웹 소개용 문체로 매끄럽게 다시 쓴다.
-- 슬라이드에 상담사 이름이 드러나면 intro 안에 자연스럽게 녹여 넣는다.
+- headline은 강하고 간결하게 작성한다.
+- bulletPoints는 실제 상담 포인트처럼 짧고 읽기 쉽게 작성한다.
+- 상담사 이름이 PPT에 드러나면 intro에 자연스럽게 녹여 넣는다.
 `.trim();
 
     const response = await ai.models.generateContent({
@@ -241,12 +290,32 @@ ${pptInfo.combinedText}
     return parseJsonResponse(await extractTextFromResponse(response));
 }
 
+async function generateImage(prompt, imageKind) {
+    const response = await ai.models.generateContent({
+        model: IMAGE_MODEL,
+        contents: prompt,
+        config: {
+            responseModalities: ['TEXT', 'IMAGE']
+        }
+    });
+
+    const imageDataUrl = extractInlineImage(response);
+    if (!imageDataUrl) {
+        console.warn(`[image] ${imageKind} image was not returned`, summarizeResponseForLog(response));
+    } else {
+        console.log(`[image] ${imageKind} image generated successfully`);
+    }
+
+    return imageDataUrl;
+}
+
 async function generatePortraitImage(payload, extraPrompt = '') {
     const guide = getTemplateGuide(payload.templateType);
+    const safeExtraPrompt = sanitizeExtraPrompt(extraPrompt);
     const portraitPrompt = `
-Create one premium portrait photo for a ${guide.label} consultant profile page.
+Create one premium portrait photo for a ${guide.labelEn} consultant profile page.
 Reference style: ${payload.imageStyle || 'clean Korean studio portrait, premium consultation brand look'}
-Extra context from uploaded material: ${extraPrompt || 'Build a refined, calm, trustworthy profile portrait.'}
+Extra context from uploaded material: ${safeExtraPrompt || 'Build a refined, calm, trustworthy profile portrait.'}
 
 Requirements:
 - realistic professional portrait
@@ -256,18 +325,32 @@ Requirements:
 - premium website hero image quality
 - no text
 - no watermark
+- do not depict horror, fear, ghosts, blood, weapons, or occult shock imagery
+- keep the result elegant, polished, and suitable for a premium consultation brand
 - ${guide.imageMood}
 `.trim();
 
-    const response = await ai.models.generateContent({
-        model: IMAGE_MODEL,
-        contents: portraitPrompt,
-        config: {
-            responseModalities: ['TEXT', 'IMAGE']
-        }
-    });
+    return generateImage(portraitPrompt, 'portrait');
+}
 
-    return extractInlineImage(response);
+async function generateMoodImage(payload, extraPrompt = '') {
+    const guide = getTemplateGuide(payload.templateType);
+    const safeExtraPrompt = sanitizeExtraPrompt(extraPrompt);
+    const moodPrompt = `
+Create one premium editorial scene image for a ${guide.labelEn} consultant landing page.
+Reference style: ${payload.imageStyle || 'soft editorial still life, premium brand image'}
+Extra context from uploaded material: ${safeExtraPrompt || 'Build a scene image that supports the consultant story.'}
+
+Requirements:
+- no people
+- no text
+- no watermark
+- warm, elegant, premium composition
+- suitable as a supporting image on a profile page
+- ${guide.moodScene}
+`.trim();
+
+    return generateImage(moodPrompt, 'mood');
 }
 
 function validateUsage(res) {
@@ -285,7 +368,7 @@ function validateUsage(res) {
 function validateApiKey(res) {
     if (!ai) {
         res.status(500).json({
-            error: 'GEMINI_API_KEY가 설정되지 않았습니다. 서버 .env에 API 키를 넣어주세요.'
+            error: 'GEMINI_API_KEY가 설정되지 않았습니다. 서버의 .env 파일을 확인해주세요.'
         });
         return false;
     }
@@ -298,7 +381,9 @@ app.get('/api/health', (_req, res) => {
         ok: true,
         dailyLimit: DAILY_PROFILE_LIMIT,
         usedToday: count,
-        hasApiKey: Boolean(GEMINI_API_KEY)
+        hasApiKey: Boolean(GEMINI_API_KEY),
+        imageModel: IMAGE_MODEL,
+        textModel: TEXT_MODEL
     });
 });
 
@@ -316,12 +401,19 @@ app.post('/api/generate-profile', async (req, res) => {
     try {
         const profile = await generateProfileTextFromInput(payload);
         let profileImage = '';
+        let moodImage = '';
 
         if (payload.generateImage) {
             try {
                 profileImage = await generatePortraitImage(payload, `${payload.name} / ${payload.specialty}`);
             } catch (imageError) {
-                console.error('Image generation failed:', imageError);
+                console.error('Portrait image generation failed:', imageError);
+            }
+
+            try {
+                moodImage = await generateMoodImage(payload, `${payload.specialty} / ${payload.tone}`);
+            } catch (imageError) {
+                console.error('Mood image generation failed:', imageError);
             }
         }
 
@@ -329,7 +421,8 @@ app.post('/api/generate-profile', async (req, res) => {
         res.json({
             profile: {
                 ...profile,
-                profileImage
+                profileImage,
+                moodImage
             },
             usage
         });
@@ -363,12 +456,19 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
 
         const profile = await generateProfileTextFromPpt(payload, pptInfo);
         let profileImage = '';
+        let moodImage = '';
 
         if (String(payload.generateImage) === 'true') {
             try {
                 profileImage = await generatePortraitImage(payload, pptInfo.combinedText.slice(0, 1500));
             } catch (imageError) {
-                console.error('Image generation failed:', imageError);
+                console.error('Portrait image generation failed:', imageError);
+            }
+
+            try {
+                moodImage = await generateMoodImage(payload, pptInfo.combinedText.slice(0, 1500));
+            } catch (imageError) {
+                console.error('Mood image generation failed:', imageError);
             }
         }
 
@@ -376,7 +476,8 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
         res.json({
             profile: {
                 ...profile,
-                profileImage
+                profileImage,
+                moodImage
             },
             usage,
             meta: {
@@ -386,7 +487,7 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
     } catch (error) {
         console.error(error);
         res.status(500).json({
-            error: 'PPT 분석 또는 AI 재구성 중 오류가 발생했습니다.'
+            error: 'PPT 분석 또는 AI 구성 중 오류가 발생했습니다.'
         });
     }
 });
