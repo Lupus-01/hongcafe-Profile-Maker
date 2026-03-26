@@ -520,16 +520,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('pb-close-code-modal')?.addEventListener('click', () => codeModal.classList.remove('active'));
 
-    copyButton?.addEventListener('click', async () => {
+    async function copyCodeToClipboard() {
+        const textToCopy = codeOutput.value;
+
+        if (!textToCopy) {
+            window.alert('복사할 코드가 없습니다.');
+            return false;
+        }
+
         try {
-            await navigator.clipboard.writeText(codeOutput.value);
+            await navigator.clipboard.writeText(textToCopy);
+            return true;
+        } catch {
+            codeOutput.focus();
+            codeOutput.select();
+            codeOutput.setSelectionRange(0, textToCopy.length);
+
+            try {
+                return document.execCommand('copy');
+            } catch {
+                return false;
+            }
+        }
+    }
+
+    copyButton?.addEventListener('click', async () => {
+        const copied = await copyCodeToClipboard();
+
+        if (copied) {
             copyButton.textContent = '복사됨';
             setTimeout(() => {
                 copyButton.textContent = '복사하기';
             }, 1200);
-        } catch {
-            window.alert('복사에 실패했습니다.');
+            return;
         }
+
+        window.alert('복사에 실패했습니다. 코드 영역을 직접 선택해 복사해주세요.');
     });
 
     aiGenerateButton?.addEventListener('click', requestAiProfile);
