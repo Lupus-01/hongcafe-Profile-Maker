@@ -199,6 +199,64 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+    function setupCollapsibleSection(section, header, body, options = {}) {
+        if (!section || !header || !body) return;
+
+        section.classList.add('pb-collapsible');
+        body.classList.add('pb-collapsible-body');
+
+        const toggleButton = document.createElement('button');
+        toggleButton.type = 'button';
+        toggleButton.className = 'pb-collapse-toggle';
+        toggleButton.textContent = options.expanded ? '접기' : '펼치기';
+        toggleButton.setAttribute('aria-expanded', options.expanded ? 'true' : 'false');
+
+        header.appendChild(toggleButton);
+
+        if (!options.expanded) {
+            section.classList.add('is-collapsed');
+        }
+
+        toggleButton.addEventListener('click', () => {
+            const collapsed = section.classList.toggle('is-collapsed');
+            toggleButton.textContent = collapsed ? '펼치기' : '접기';
+            toggleButton.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        });
+    }
+
+    function initializeCollapsibles() {
+        const aiPanels = document.querySelectorAll('.pb-ai-panel');
+        if (aiPanels[1]) {
+            setupCollapsibleSection(
+                aiPanels[1],
+                aiPanels[1].querySelector('.pb-ai-header'),
+                aiPanels[1].querySelector('.pb-ai-form')
+            );
+        }
+
+        if (aiPanels[2]) {
+            setupCollapsibleSection(
+                aiPanels[2],
+                aiPanels[2].querySelector('.pb-ai-header'),
+                aiPanels[2].querySelector('.pb-ai-form')
+            );
+        }
+
+        const paletteGroups = document.querySelectorAll('.pb-palette-group');
+        paletteGroups.forEach((group) => {
+            const title = group.querySelector('.pb-subtitle');
+            const body = group.querySelector('.pb-tools-grid');
+            if (!title || !body) return;
+
+            const header = document.createElement('div');
+            header.className = 'pb-group-header';
+            title.parentNode.insertBefore(header, title);
+            header.appendChild(title);
+
+            setupCollapsibleSection(group, header, body);
+        });
+    }
+
     function buildPresentationMarkup(type) {
         const template = templates[type];
         if (!template) return '';
@@ -607,6 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
     aiGenerateButton?.addEventListener('click', requestAiProfile);
     pptGenerateButton?.addEventListener('click', requestPptGeneration);
 
+    initializeCollapsibles();
     bindUploadables(document.body);
     bindTypographyControls();
     applyTheme('pb-theme-sinjeom');
