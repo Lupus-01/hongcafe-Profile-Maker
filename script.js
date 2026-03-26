@@ -444,6 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const img = uploadable.querySelector('.pb-uploaded-img');
             const placeholder = uploadable.querySelector('.pb-upload-placeholder');
             if (!img || !img.src || img.src === window.location.href) {
+                if (img) img.remove();
                 if (placeholder) placeholder.remove();
             } else if (placeholder) {
                 placeholder.remove();
@@ -459,6 +460,196 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         return clone;
+    }
+
+    function setInlineStyles(element, styles) {
+        if (!element) return;
+        Object.entries(styles).forEach(([property, value]) => {
+            element.style.setProperty(property, value);
+        });
+    }
+
+    function normalizeExportRichText(root) {
+        root.querySelectorAll('.pb-presentation-title, .pb-presentation-card h3, .pb-presentation-closing h3, .pb-presentation-intro, .pb-presentation-body, .pb-presentation-chip, .pb-presentation-card p, .pb-presentation-closing p').forEach((node) => {
+            node.innerHTML = node.innerHTML
+                .replace(/<(\/?)(div|p)[^>]*>/gi, (_, closing) => (closing ? '<br>' : ''))
+                .replace(/(<br>\s*){2,}/gi, '<br>')
+                .replace(/^(<br>\s*)+|(<br>\s*)+$/gi, '');
+        });
+    }
+
+    function applyEditorFriendlyExportStyles(clone) {
+        const computedCanvas = window.getComputedStyle(canvas);
+        const fontFamily = computedCanvas.getPropertyValue('--pb-font-family').trim() || defaultTypography.fontFamily;
+        const titleSize = computedCanvas.getPropertyValue('--pb-title-size').trim() || `${defaultTypography.titleSize}px`;
+        const bodySize = computedCanvas.getPropertyValue('--pb-body-size').trim() || `${defaultTypography.bodySize}px`;
+        const pointSize = computedCanvas.getPropertyValue('--pb-point-size').trim() || `${defaultTypography.pointSize}px`;
+        const lineHeight = computedCanvas.getPropertyValue('--pb-body-line-height').trim() || String(defaultTypography.lineHeight);
+        const subtitleSize = computedCanvas.getPropertyValue('--pb-subtitle-size').trim() || '26px';
+        const chipSize = computedCanvas.getPropertyValue('--pb-chip-size').trim() || '16px';
+
+        setInlineStyles(clone, {
+            width: '100%',
+            'max-width': '540px',
+            padding: '40px 30px',
+            'border-radius': '24px',
+            'box-sizing': 'border-box',
+            'background-color': currentBrandBg,
+            'font-family': fontFamily,
+            color: '#2a211c'
+        });
+
+        clone.querySelectorAll('.pb-presentation').forEach((section) => {
+            let backgroundValue = 'linear-gradient(180deg, #fdf6f7 0%, #f8e8eb 100%)';
+            if (section.classList.contains('pb-presentation--tarot')) {
+                backgroundValue = 'linear-gradient(180deg, #faf8fe 0%, #efe8fb 100%)';
+            } else if (section.classList.contains('pb-presentation--saju')) {
+                backgroundValue = 'linear-gradient(180deg, #fdf9f3 0%, #f5ebdc 100%)';
+            }
+
+            setInlineStyles(section, {
+                border: '1px solid rgba(124, 88, 70, 0.08)',
+                'border-radius': '28px',
+                padding: '28px',
+                color: '#2a211c',
+                'box-shadow': '0 24px 40px rgba(78, 49, 30, 0.08)',
+                background: backgroundValue
+            });
+        });
+
+        clone.querySelectorAll('.pb-presentation-hero').forEach((node) => setInlineStyles(node, {
+            display: 'grid',
+            'grid-template-columns': 'minmax(0, 1.1fr) minmax(180px, 0.9fr)',
+            gap: '20px',
+            'align-items': 'end',
+            'margin-bottom': '26px'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-copy, .pb-presentation-side').forEach((node) => setInlineStyles(node, {
+            display: 'flex',
+            'flex-direction': 'column',
+            gap: node.classList.contains('pb-presentation-side') ? '20px' : '14px'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-eyebrow').forEach((node) => setInlineStyles(node, {
+            display: 'inline-block',
+            padding: '7px 12px',
+            'border-radius': '999px',
+            background: 'rgba(255,255,255,0.72)',
+            color: currentBrandColor,
+            'font-size': '11px',
+            'font-weight': '700',
+            'letter-spacing': '0.12em',
+            'text-transform': 'uppercase'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-title').forEach((node) => setInlineStyles(node, {
+            margin: '0',
+            'font-size': titleSize,
+            'line-height': '1.12',
+            'letter-spacing': '-0.04em',
+            'font-weight': '800',
+            'word-break': 'keep-all'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-intro, .pb-presentation-body, .pb-presentation-card p, .pb-presentation-closing p').forEach((node) => setInlineStyles(node, {
+            margin: '0',
+            'font-size': bodySize,
+            'line-height': lineHeight,
+            color: '#554840',
+            'word-break': 'keep-all'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-section').forEach((node) => setInlineStyles(node, {
+            'margin-bottom': '26px'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-chip').forEach((node) => setInlineStyles(node, {
+            display: 'inline-block',
+            'margin-bottom': '14px',
+            padding: '10px 16px',
+            'border-radius': '14px',
+            background: 'rgba(255,255,255,0.78)',
+            'box-shadow': '0 10px 24px rgba(78, 49, 30, 0.05)',
+            'font-size': chipSize,
+            'font-weight': '800',
+            color: '#2a211c'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-grid').forEach((node) => setInlineStyles(node, {
+            display: 'grid',
+            'grid-template-columns': 'minmax(0, 1fr) minmax(0, 0.9fr)',
+            gap: '24px',
+            'align-items': 'start',
+            'margin-bottom': '28px'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-points').forEach((node) => setInlineStyles(node, {
+            margin: '0',
+            'padding-left': '20px',
+            display: 'flex',
+            'flex-direction': 'column',
+            gap: '12px',
+            'font-size': pointSize,
+            'font-weight': '700',
+            'line-height': '1.55',
+            color: '#3a2f28'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-card').forEach((node) => setInlineStyles(node, {
+            padding: '22px',
+            'border-radius': '22px',
+            background: 'rgba(255,255,255,0.72)',
+            'box-shadow': '0 14px 30px rgba(78, 49, 30, 0.06)'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-card h3, .pb-presentation-closing h3').forEach((node) => setInlineStyles(node, {
+            margin: '0 0 12px',
+            'font-size': subtitleSize,
+            'line-height': '1.18',
+            'letter-spacing': '-0.04em',
+            'font-weight': '800',
+            color: '#251d19',
+            'word-break': 'keep-all'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-closing').forEach((node) => setInlineStyles(node, {
+            padding: '22px 24px',
+            'border-radius': '24px',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,255,255,0.62))'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-portrait, .pb-presentation-photo').forEach((node) => {
+            const hasImage = Boolean(node.querySelector('.pb-uploaded-img'));
+            if (!hasImage) {
+                node.remove();
+                return;
+            }
+
+            setInlineStyles(node, {
+                overflow: 'hidden',
+                position: 'relative',
+                background: 'rgba(255,255,255,0.6)',
+                'border-radius': node.classList.contains('pb-presentation-portrait') ? '28px' : '24px',
+                'min-height': node.classList.contains('pb-presentation-portrait') ? '360px' : '420px',
+                'box-shadow': 'inset 0 0 0 1px rgba(124, 88, 70, 0.08)'
+            });
+        });
+
+        clone.querySelectorAll('.pb-presentation-portrait .pb-uploaded-img, .pb-presentation-photo .pb-uploaded-img').forEach((node) => setInlineStyles(node, {
+            width: '100%',
+            height: '100%',
+            display: 'block',
+            'object-fit': 'cover'
+        }));
+
+        clone.querySelectorAll('.pb-presentation-hero, .pb-presentation-grid').forEach((node) => {
+            if (node.children.length <= 1) {
+                node.style.display = 'block';
+            }
+        });
+
+        normalizeExportRichText(clone);
     }
 
     async function requestAiProfile() {
@@ -616,6 +807,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('pb-export-btn')?.addEventListener('click', () => {
         const clone = getCleanCanvasClone();
+        applyEditorFriendlyExportStyles(clone);
         const wrapper = document.createElement('div');
         wrapper.appendChild(clone);
         codeOutput.value = wrapper.innerHTML.trim();
