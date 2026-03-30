@@ -461,6 +461,7 @@ Brand features: ${payload.features}
 Target audience: ${payload.targetAudience}
 Promotion goal: ${payload.promoGoal}
 Brand tone: ${payload.brandTone || 'clean, trustworthy, modern'}
+Logo mood hint: ${payload.logoMood || payload.brandTone || 'refined and brand-aligned'}
 Reference style: ${payload.imageStyle || 'clean marketing poster illustration, polished brand visual'}
 
 Requirements:
@@ -470,6 +471,14 @@ Requirements:
 - polished, commercial, clean composition
 - reflect the business category clearly
 - keep the mood aligned with the supplied brand tone
+- the image should immediately communicate the partner company's industry and main offer
+- make the visual direction distinct for this business instead of generic stock imagery
+- if the business is education, show a bright academic, classroom, study, or parent-information atmosphere
+- if the business is beauty, show a premium skincare, clinic, cosmetic, or clean lifestyle atmosphere
+- if the business is food, show ingredients, plated products, packaging, or warm dining mood
+- if the business is finance, consulting, or professional service, show trust, order, premium desk, or modern office mood
+- prioritize product or service relevance over abstract decoration
+- leave enough clean space in the composition so the poster layout can sit on top
 `.trim();
 
     return generateImage(posterPrompt, 'brand');

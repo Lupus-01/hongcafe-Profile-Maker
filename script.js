@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let brandTargetInput;
     let brandGoalInput;
     let brandToneInput;
+    let brandLogoMoodInput;
     let brandReferenceInput;
     let brandAccentInput;
     let brandLogoFileInput;
@@ -342,6 +343,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label class="pb-ai-field">
                         <span>브랜드 톤</span>
                         <input id="pb-brand-tone" type="text" placeholder="예: 신뢰감 있는, 따뜻한, 프리미엄, 경쾌한">
+                    </label>
+                    <label class="pb-ai-field">
+                        <span>로고 분위기</span>
+                        <input id="pb-brand-logo-mood" type="text" placeholder="예: 미니멀한, 밝은 교육 느낌, 고급스러운, 친근한">
                     </label>
                     <label class="pb-ai-field">
                         <span>참고 자료 요약</span>
@@ -1130,6 +1135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         brandTargetInput = document.getElementById('pb-brand-target');
         brandGoalInput = document.getElementById('pb-brand-goal');
         brandToneInput = document.getElementById('pb-brand-tone');
+        brandLogoMoodInput = document.getElementById('pb-brand-logo-mood');
         brandReferenceInput = document.getElementById('pb-brand-reference');
         brandAccentInput = document.getElementById('pb-brand-accent');
         brandLogoFileInput = document.getElementById('pb-brand-logo-file');
@@ -1148,6 +1154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetAudience = brandTargetInput?.value.trim();
         const promoGoal = brandGoalInput?.value.trim();
         const brandTone = brandToneInput?.value.trim();
+        const logoMood = brandLogoMoodInput?.value.trim();
         const referenceText = brandReferenceInput?.value.trim();
         const imageStyle = brandImageStyleInput?.value.trim();
         const accentColor = brandAccentInput?.value || '#4F7DFF';
@@ -1174,6 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     targetAudience,
                     promoGoal,
                     brandTone,
+                    logoMood,
                     referenceText,
                     imageStyle,
                     generateImage: Boolean(brandGenerateImageInput?.checked)
@@ -1399,6 +1407,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const stage = document.createElement('div');
         const clone = getVisualCanvasClone();
+        const posterClone = clone.querySelector('.pb-brand-poster');
+        if (posterClone) {
+            posterClone.style.width = '540px';
+            posterClone.style.maxWidth = '540px';
+            posterClone.style.margin = '0 auto';
+        }
+
+        const logoClone = clone.querySelector('.pb-brand-poster-logo .pb-uploaded-img');
+        if (logoClone) {
+            logoClone.style.maxWidth = '100%';
+            logoClone.style.maxHeight = '96px';
+            logoClone.style.width = 'auto';
+            logoClone.style.height = 'auto';
+        }
+
+        const visualClone = clone.querySelector('.pb-brand-poster-visual .pb-uploaded-img');
+        if (visualClone) {
+            visualClone.style.maxHeight = '320px';
+            visualClone.style.width = '100%';
+            visualClone.style.height = 'auto';
+        }
+
         stage.style.position = 'fixed';
         stage.style.left = '-10000px';
         stage.style.top = '0';
