@@ -50,6 +50,7 @@ const TEMPLATE_GUIDES = {
 
 app.use(cors(FRONTEND_ORIGIN ? { origin: FRONTEND_ORIGIN } : undefined));
 app.use(express.json({ limit: '2mb' }));
+app.use('/vendor/html2canvas', express.static(path.join(__dirname, 'node_modules', 'html2canvas', 'dist')));
 app.use(express.static(__dirname));
 
 function getKstDateString() {

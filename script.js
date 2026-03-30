@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeModal = document.getElementById('pb-code-modal');
     const codeOutput = document.getElementById('pb-code-output');
     const copyButton = document.getElementById('pb-copy-btn');
+    const exportButton = document.getElementById('pb-export-btn');
     let brandNameInput;
     let brandIndustryInput;
     let brandProductsInput;
@@ -418,11 +419,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (mode === 'brand') {
             appContainer.classList.add('pb-mode-brand');
+            if (exportButton) exportButton.textContent = '이미지 파일 저장';
             if (!canvas.children.length || canvas.querySelector('.pb-empty-state')) {
                 canvas.innerHTML = createBrandEmptyState();
             }
         } else {
             appContainer.classList.remove('pb-mode-brand');
+            if (exportButton) exportButton.textContent = '코드 생성 및 복사';
             if (!canvas.children.length || canvas.querySelector('.pb-brand-empty-state')) {
                 canvas.innerHTML = `
                     <div class="pb-empty-state">
@@ -1251,7 +1254,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
     });
 
-    document.getElementById('pb-export-btn')?.addEventListener('click', () => {
+    exportButton?.addEventListener('click', async () => {
+        if (currentMode === 'brand') {
+            await downloadBrandPosterImage();
+            return;
+        }
+
         const clone = getCleanCanvasClone();
         applyEditorFriendlyExportStyles(clone);
         const wrapper = document.createElement('div');
@@ -1366,6 +1374,60 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onerror = () => reject(new Error('파일을 읽는 중 오류가 발생했습니다.'));
             reader.readAsDataURL(file);
         });
+    }
+
+    function getVisualCanvasClone() {
+        const clone = canvas.cloneNode(true);
+        clone.querySelectorAll('.pb-delete-btn').forEach((button) => button.remove());
+        clone.querySelectorAll('[contenteditable]').forEach((node) => node.removeAttribute('contenteditable'));
+        const empty = clone.querySelector('.pb-empty-state');
+        if (empty) empty.remove();
+        return clone;
+    }
+
+    async function downloadBrandPosterImage() {
+        const poster = canvas.querySelector('.pb-brand-poster');
+        if (!poster) {
+            window.alert('먼저 업체 이미지 결과를 생성해주세요.');
+            return;
+        }
+
+        if (typeof window.html2canvas !== 'function') {
+            window.alert('이미지 저장 기능을 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.');
+            return;
+        }
+
+        const stage = document.createElement('div');
+        const clone = getVisualCanvasClone();
+        stage.style.position = 'fixed';
+        stage.style.left = '-10000px';
+        stage.style.top = '0';
+        stage.style.padding = '24px';
+        stage.style.background = currentBrandBg || '#f3f6ff';
+        stage.style.zIndex = '-1';
+        stage.style.pointerEvents = 'none';
+        stage.appendChild(clone);
+        document.body.appendChild(stage);
+
+        try {
+            const rendered = await window.html2canvas(clone, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true,
+                logging: false
+            });
+
+            const link = document.createElement('a');
+            const brandName = (brandNameInput?.value || 'brand-poster').trim().replace(/[\\/:*?"<>|]+/g, '-');
+            link.href = rendered.toDataURL('image/png');
+            link.download = `${brandName || 'brand-poster'}.png`;
+            link.click();
+        } catch (error) {
+            console.error(error);
+            window.alert('이미지 파일 저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+        } finally {
+            stage.remove();
+        }
     }
 
     copyButton?.addEventListener('click', async () => {
