@@ -695,6 +695,34 @@ body {
     margin-bottom: 28px;
 }
 
+.pb-presentation.is-text-only-choice .pb-presentation-hero,
+.pb-presentation.is-text-only-choice .pb-presentation-grid {
+    grid-template-columns: 1fr;
+}
+
+.pb-presentation.is-text-only-choice .pb-presentation-portrait,
+.pb-presentation.is-text-only-choice .pb-presentation-photo {
+    display: none;
+}
+
+.pb-presentation.is-text-only-choice .pb-presentation-copy {
+    background: rgba(255, 255, 255, 0.56);
+    border-radius: 24px;
+    padding: 18px 18px 20px;
+    box-shadow: inset 0 0 0 1px rgba(124, 88, 70, 0.08);
+}
+
+.pb-presentation.is-text-only-choice .pb-presentation-section {
+    margin-top: 2px;
+}
+
+.pb-presentation.is-text-only-choice .pb-presentation-side {
+    padding: 22px;
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.54));
+    box-shadow: 0 16px 32px rgba(78, 49, 30, 0.05);
+}
+
 .pb-presentation-side {
     display: flex;
     flex-direction: column;

@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentBrandLight = '#fbe6e8';
     let currentMode = 'profile';
     let currentBrandLogoDataUrl = '';
+    let lastProfileDownloadName = 'profile-builder';
     const defaultTypography = {
         fontFamily: `'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif`,
         titleSize: 42,
@@ -430,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             appContainer.classList.remove('pb-mode-brand');
-            if (exportButton) exportButton.textContent = '코드 생성 및 복사';
+            if (exportButton) exportButton.textContent = '프로필 이미지 저장';
             if (!canvas.children.length || canvas.querySelector('.pb-brand-empty-state')) {
                 canvas.innerHTML = `
                     <div class="pb-empty-state">
@@ -658,6 +659,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 placeholder.style.display = 'none';
             }
         }
+
+        syncPresentationImageState(element);
+    }
+
+    function hasUploadedImage(container) {
+        if (!container) return false;
+        const img = container.querySelector('.pb-uploaded-img');
+        return Boolean(img && img.getAttribute('src'));
+    }
+
+    function syncPresentationImageState(target, options = {}) {
+        const presentation = target?.classList?.contains('pb-presentation')
+            ? target
+            : target?.closest?.('.pb-presentation');
+
+        if (!presentation) return;
+
+        const hasPortrait = hasUploadedImage(presentation.querySelector('.pb-presentation-portrait'));
+        const hasMood = hasUploadedImage(presentation.querySelector('.pb-presentation-photo'));
+        const textOnly = Boolean(options.textOnly && !hasPortrait && !hasMood);
+
+        presentation.classList.toggle('has-portrait-image', hasPortrait);
+        presentation.classList.toggle('has-mood-image', hasMood);
+        presentation.classList.toggle('is-text-only-choice', textOnly);
     }
 
     function getCleanCanvasClone() {
@@ -1033,6 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tone = aiTone.value.trim();
         const career = aiCareer.value.trim();
         const imageStyle = aiImageStyle.value.trim();
+        const shouldGenerateImages = aiGenerateImage.checked;
 
         if (!name || !specialty || !tone || !career) {
             setStatus(aiStatus, '상담사명, 전문분야, 상담 톤, 경력/강점을 먼저 입력해주세요.', 'error');
@@ -1053,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tone,
                     career,
                     imageStyle,
-                    generateImage: aiGenerateImage.checked
+                    generateImage: shouldGenerateImages
                 })
             });
 
@@ -1065,8 +1091,14 @@ document.addEventListener('DOMContentLoaded', () => {
             applyTheme(templateConfig.theme);
             const element = replaceCanvasWithElement(templateType);
             fillPresentation(element, data.profile);
+            syncPresentationImageState(element, { textOnly: !shouldGenerateImages });
+            lastProfileDownloadName = (name || specialty || 'profile-builder').trim();
 
-            setStatus(aiStatus, buildGenerationStatus('생성이 완료되었습니다.', data.usage, data.imageMeta), 'success');
+            setStatus(
+                aiStatus,
+                buildGenerationStatus(shouldGenerateImages ? '생성이 완료되었습니다.' : '글 중심 프로필 구성이 완료되었습니다.', data.usage, data.imageMeta),
+                'success'
+            );
             renderImageIssue(aiImageIssue, data.imageMeta);
         } catch (error) {
             setStatus(aiStatus, error.message || 'AI 생성 중 오류가 발생했습니다.', 'error');
@@ -1080,6 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = pptFile.files[0];
         const templateType = pptTemplate.value;
         const templateConfig = templates[templateType];
+        const shouldGenerateImages = pptGenerateImage.checked;
 
         if (!file) {
             setStatus(pptStatus, '먼저 PPT 또는 Excel 파일을 선택해주세요.', 'error');
@@ -1090,7 +1123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('pptFile', file);
         formData.append('templateType', templateType);
         formData.append('imageStyle', pptImageStyle.value.trim());
-        formData.append('generateImage', String(pptGenerateImage.checked));
+        formData.append('generateImage', String(shouldGenerateImages));
 
         pptGenerateButton.disabled = true;
         setStatus(pptStatus, '문서 내용을 분석하고 완성형 소개 페이지를 구성하는 중입니다...', 'loading');
@@ -1109,13 +1142,19 @@ document.addEventListener('DOMContentLoaded', () => {
             applyTheme(templateConfig.theme);
             const element = replaceCanvasWithElement(templateType);
             fillPresentation(element, data.profile);
+            syncPresentationImageState(element, { textOnly: !shouldGenerateImages });
+            lastProfileDownloadName = file.name.replace(/\.[^.]+$/, '') || 'profile-builder';
 
             const slideMessage = data.meta?.slidesCount ? `슬라이드 ${data.meta.slidesCount}장 분석 완료.` : '';
             const sheetMessage = data.meta?.sheetsCount ? `시트 ${data.meta.sheetsCount}개 분석 완료.` : '';
             const sourceMessage = [slideMessage, sheetMessage].filter(Boolean).join(' ');
             setStatus(
                 pptStatus,
-                buildGenerationStatus(`${sourceMessage} 생성이 완료되었습니다.`.trim(), data.usage, data.imageMeta),
+                buildGenerationStatus(
+                    `${sourceMessage} ${shouldGenerateImages ? '생성이 완료되었습니다.' : '글 중심 프로필 구성이 완료되었습니다.'}`.trim(),
+                    data.usage,
+                    data.imageMeta
+                ),
                 'success'
             );
             renderImageIssue(pptImageIssue, data.imageMeta);
@@ -1235,6 +1274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUploadTargetImg.src = loadEvent.target.result;
             currentUploadTargetImg.style.display = 'block';
             currentUploadPlaceholder.style.display = 'none';
+            syncPresentationImageState(currentUploadTargetImg);
         };
         reader.readAsDataURL(file);
         event.target.value = '';
@@ -1268,12 +1308,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const clone = getCleanCanvasClone();
-        applyEditorFriendlyExportStyles(clone);
-        const wrapper = document.createElement('div');
-        wrapper.appendChild(clone);
-        codeOutput.value = wrapper.innerHTML.trim();
-        codeModal.classList.add('active');
+        await downloadProfileImage();
     });
 
     document.getElementById('pb-close-code-modal')?.addEventListener('click', () => codeModal.classList.remove('active'));
@@ -1455,6 +1490,77 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error(error);
             window.alert('이미지 파일 저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+        } finally {
+            stage.remove();
+        }
+    }
+
+    async function downloadProfileImage() {
+        const presentation = canvas.querySelector('.pb-presentation');
+        if (!presentation) {
+            window.alert('먼저 프로필 결과를 생성해주세요.');
+            return;
+        }
+
+        if (typeof window.html2canvas !== 'function') {
+            window.alert('이미지 저장 기능을 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.');
+            return;
+        }
+
+        const stage = document.createElement('div');
+        const clone = getVisualCanvasClone();
+
+        clone.style.width = '540px';
+        clone.style.maxWidth = '540px';
+        clone.style.margin = '0 auto';
+        clone.style.boxShadow = 'none';
+
+        clone.querySelectorAll('.pb-image-uploadable').forEach((uploadable) => {
+            const img = uploadable.querySelector('.pb-uploaded-img');
+            const placeholder = uploadable.querySelector('.pb-upload-placeholder');
+            const hasImage = Boolean(img && img.getAttribute('src'));
+
+            if (hasImage) {
+                if (placeholder) placeholder.remove();
+                return;
+            }
+
+            if (uploadable.closest('.pb-presentation.is-text-only-choice')) {
+                uploadable.remove();
+                return;
+            }
+
+            if (placeholder) {
+                placeholder.innerHTML = '';
+            }
+        });
+
+        stage.style.position = 'fixed';
+        stage.style.left = '-10000px';
+        stage.style.top = '0';
+        stage.style.padding = '24px';
+        stage.style.background = currentBrandBg || '#fdf0f1';
+        stage.style.zIndex = '-1';
+        stage.style.pointerEvents = 'none';
+        stage.appendChild(clone);
+        document.body.appendChild(stage);
+
+        try {
+            const rendered = await window.html2canvas(clone, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true,
+                logging: false
+            });
+
+            const link = document.createElement('a');
+            const fileName = String(lastProfileDownloadName || 'profile-builder').trim().replace(/[\\/:*?"<>|]+/g, '-');
+            link.href = rendered.toDataURL('image/png');
+            link.download = `${fileName || 'profile-builder'}.png`;
+            link.click();
+        } catch (error) {
+            console.error(error);
+            window.alert('프로필 이미지 저장 중 오류가 발생했습니다. 다시 시도해주세요.');
         } finally {
             stage.remove();
         }
