@@ -674,7 +674,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function syncPresentationImageState(target, options = {}) {
         const presentation = target?.classList?.contains('pb-presentation')
             ? target
-            : target?.closest?.('.pb-presentation');
+            : target?.querySelector?.('.pb-presentation') || target?.closest?.('.pb-presentation');
 
         if (!presentation) return;
 
