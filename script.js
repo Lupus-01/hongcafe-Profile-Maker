@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeModal = document.getElementById('pb-code-modal');
     const codeOutput = document.getElementById('pb-code-output');
     const copyButton = document.getElementById('pb-copy-btn');
+    const codeGenerateButton = document.getElementById('pb-code-generate-btn');
     const exportButton = document.getElementById('pb-export-btn');
     let brandNameInput;
     let brandIndustryInput;
@@ -563,12 +564,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mode === 'brand') {
             appContainer.classList.add('pb-mode-brand');
             if (exportButton) exportButton.textContent = '이미지 파일 저장';
+            if (codeGenerateButton) codeGenerateButton.hidden = true;
             if (!canvas.children.length || canvas.querySelector('.pb-empty-state')) {
                 canvas.innerHTML = createBrandEmptyState();
             }
         } else {
             appContainer.classList.remove('pb-mode-brand');
             if (exportButton) exportButton.textContent = '프로필 이미지 저장';
+            if (codeGenerateButton) codeGenerateButton.hidden = false;
             if (!canvas.children.length || canvas.querySelector('.pb-brand-empty-state')) {
                 canvas.innerHTML = `
                     <div class="pb-empty-state">
@@ -1518,6 +1521,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         await downloadProfileImage();
+    });
+
+    codeGenerateButton?.addEventListener('click', () => {
+        if (currentMode === 'brand') {
+            window.alert('업체 이미지 생성 모드에서는 코드보다 이미지 파일 저장을 사용해주세요.');
+            return;
+        }
+
+        const clone = getCleanCanvasClone();
+        const wrapper = document.createElement('div');
+        wrapper.appendChild(clone);
+        codeOutput.value = wrapper.innerHTML.trim();
+        codeModal.classList.add('active');
     });
 
     document.getElementById('pb-close-code-modal')?.addEventListener('click', () => codeModal.classList.remove('active'));
