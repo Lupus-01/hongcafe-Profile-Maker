@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pptFile = document.getElementById('pb-ppt-file');
     const pptImageStyle = document.getElementById('pb-ppt-image-style');
     const pptGenerateImage = document.getElementById('pb-ppt-generate-image');
-    const pptGenerateImageLabel = document.getElementById('pb-ppt-generate-image-label');
     const pptGenerateImageHelp = document.getElementById('pb-ppt-generate-image-help');
     const pptGenerateButton = document.getElementById('pb-ppt-generate-btn');
     const pptStatus = document.getElementById('pb-ppt-status');
@@ -26,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const aiCareer = document.getElementById('pb-ai-career');
     const aiImageStyle = document.getElementById('pb-ai-image-style');
     const aiGenerateImage = document.getElementById('pb-ai-generate-image');
-    const aiGenerateImageLabel = document.getElementById('pb-ai-generate-image-label');
     const aiGenerateImageHelp = document.getElementById('pb-ai-generate-image-help');
     const aiGenerateButton = document.getElementById('pb-ai-generate-btn');
     const aiStatus = document.getElementById('pb-ai-status');
@@ -683,21 +681,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasPortrait = hasUploadedImage(presentation.querySelector('.pb-presentation-portrait'));
         const hasMood = hasUploadedImage(presentation.querySelector('.pb-presentation-photo'));
         const textOnly = Boolean(options.textOnly && !hasPortrait && !hasMood);
+        const portraitNode = presentation.querySelector('.pb-presentation-portrait');
+        const moodNode = presentation.querySelector('.pb-presentation-photo');
 
         presentation.classList.toggle('has-portrait-image', hasPortrait);
         presentation.classList.toggle('has-mood-image', hasMood);
         presentation.classList.toggle('is-text-only-choice', textOnly);
+
+        if (portraitNode) portraitNode.style.display = textOnly ? 'none' : '';
+        if (moodNode) moodNode.style.display = textOnly ? 'none' : '';
     }
 
     function updateImageGenerationControls() {
         const profileImagesOn = Boolean(aiGenerateImage?.checked);
         const docImagesOn = Boolean(pptGenerateImage?.checked);
 
-        if (aiGenerateImageLabel) {
-            aiGenerateImageLabel.textContent = profileImagesOn
-                ? '이미지 ON · AI 이미지 포함해서 프로필 생성'
-                : '이미지 OFF · 텍스트 전용 프로필로 생성';
-        }
         if (aiGenerateImageHelp) {
             aiGenerateImageHelp.textContent = profileImagesOn
                 ? '대표 이미지와 무드 이미지를 함께 시도합니다. 실패해도 직접 업로드로 이어갈 수 있습니다.'
@@ -708,11 +706,6 @@ document.addEventListener('DOMContentLoaded', () => {
             aiImageStyle.closest('.pb-ai-field')?.classList.toggle('is-disabled', !profileImagesOn);
         }
 
-        if (pptGenerateImageLabel) {
-            pptGenerateImageLabel.textContent = docImagesOn
-                ? '이미지 ON · AI 이미지 포함해서 프로필 생성'
-                : '이미지 OFF · 텍스트 전용 프로필로 생성';
-        }
         if (pptGenerateImageHelp) {
             pptGenerateImageHelp.textContent = docImagesOn
                 ? '문서 내용을 바탕으로 대표 이미지와 무드 이미지를 함께 생성합니다.'
@@ -722,6 +715,28 @@ document.addEventListener('DOMContentLoaded', () => {
             pptImageStyle.disabled = !docImagesOn;
             pptImageStyle.closest('.pb-ai-field')?.classList.toggle('is-disabled', !docImagesOn);
         }
+
+        document.querySelectorAll('.pb-toggle-group').forEach((group) => {
+            const targetId = group.dataset.toggleTarget;
+            const isOn = targetId === 'pb-ai-generate-image' ? profileImagesOn : docImagesOn;
+            group.querySelectorAll('.pb-toggle-btn').forEach((button) => {
+                button.classList.toggle('is-active', (button.dataset.value === 'on') === isOn);
+            });
+        });
+    }
+
+    function bindImageModeToggles() {
+        document.querySelectorAll('.pb-toggle-group').forEach((group) => {
+            const target = document.getElementById(group.dataset.toggleTarget);
+            if (!target) return;
+
+            group.querySelectorAll('.pb-toggle-btn').forEach((button) => {
+                button.addEventListener('click', () => {
+                    target.checked = button.dataset.value === 'on';
+                    updateImageGenerationControls();
+                });
+            });
+        });
     }
 
     function getCleanCanvasClone() {
@@ -1630,6 +1645,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeCollapsibles();
     bindUploadables(document.body);
     bindTypographyControls();
+    bindImageModeToggles();
     aiGenerateImage?.addEventListener('change', updateImageGenerationControls);
     pptGenerateImage?.addEventListener('change', updateImageGenerationControls);
     brandGenerateButton?.addEventListener('click', requestBrandPosterGeneration);

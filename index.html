@@ -44,9 +44,13 @@
                         <span>이미지 생성 스타일</span>
                         <input id="pb-ppt-image-style" type="text" placeholder="예: 부드러운 스튜디오 조명, 따뜻한 톤, 프리미엄 브랜드 무드">
                     </label>
-                    <label class="pb-ai-inline">
-                        <input id="pb-ppt-generate-image" type="checkbox" checked>
-                        <span id="pb-ppt-generate-image-label">이미지 ON · AI 이미지 포함해서 프로필 생성</span>
+                    <label class="pb-ai-field">
+                        <span>이미지 생성 방식</span>
+                        <div class="pb-toggle-group" data-toggle-target="pb-ppt-generate-image">
+                            <button class="pb-toggle-btn is-active" type="button" data-value="on">이미지 ON</button>
+                            <button class="pb-toggle-btn" type="button" data-value="off">이미지 OFF</button>
+                        </div>
+                        <input id="pb-ppt-generate-image" type="checkbox" checked hidden>
                     </label>
                     <p id="pb-ppt-generate-image-help" class="pb-ai-inline-help">이미지를 끄면 사진 영역 없이 텍스트 전용 프로필로 정리됩니다.</p>
                     <button id="pb-ppt-generate-btn" class="pb-action-btn primary" type="button">문서로 결과 생성</button>
@@ -89,9 +93,13 @@
                         <span>프로필 이미지 스타일</span>
                         <input id="pb-ai-image-style" type="text" placeholder="예: 부드러운 스튜디오 조명, 단정한 아이보리 톤">
                     </label>
-                    <label class="pb-ai-inline">
-                        <input id="pb-ai-generate-image" type="checkbox" checked>
-                        <span id="pb-ai-generate-image-label">이미지 ON · AI 이미지 포함해서 프로필 생성</span>
+                    <label class="pb-ai-field">
+                        <span>이미지 생성 방식</span>
+                        <div class="pb-toggle-group" data-toggle-target="pb-ai-generate-image">
+                            <button class="pb-toggle-btn is-active" type="button" data-value="on">이미지 ON</button>
+                            <button class="pb-toggle-btn" type="button" data-value="off">이미지 OFF</button>
+                        </div>
+                        <input id="pb-ai-generate-image" type="checkbox" checked hidden>
                     </label>
                     <p id="pb-ai-generate-image-help" class="pb-ai-inline-help">이미지를 끄면 사진 영역 없이 텍스트 전용 프로필로 정리됩니다.</p>
                     <button id="pb-ai-generate-btn" class="pb-action-btn" type="button">직접 입력으로 생성</button>
