@@ -239,33 +239,6 @@ function parseXlsxBuffer(buffer) {
     };
 }
 
-function buildDocumentPreviewMeta(parsedDocument, fileType) {
-    const items = fileType === 'xlsx'
-        ? (parsedDocument.sheets || []).map((sheet) => ({ label: `시트 ${sheet.name}`, text: sheet.text }))
-        : (parsedDocument.slides || []).map((slide) => ({ label: `슬라이드 ${slide.index}`, text: slide.text }));
-
-    const previewItems = items
-        .filter((item) => item.text)
-        .slice(0, 4)
-        .map((item) => ({
-            label: item.label,
-            text: String(item.text).replace(/\s+/g, ' ').trim().slice(0, 180)
-        }));
-
-    const previewSummary = String(parsedDocument.combinedText || '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 420);
-
-    return {
-        fileType,
-        slidesCount: fileType === 'pptx' ? (parsedDocument.slides?.length || 0) : 0,
-        sheetsCount: fileType === 'xlsx' ? (parsedDocument.sheets?.length || 0) : 0,
-        previewSummary,
-        previewItems
-    };
-}
-
 async function generateProfileTextFromInput(payload) {
     const guide = getTemplateGuide(payload.templateType);
     const prompt = `
@@ -695,41 +668,6 @@ app.post('/api/generate-profile', async (req, res) => {
     }
 });
 
-app.post('/api/preview-document', upload.single('pptFile'), async (req, res) => {
-    const file = req.file;
-
-    if (!file) {
-        return res.status(400).json({ error: '문서 파일이 업로드되지 않았습니다.' });
-    }
-
-    const lowerFileName = file.originalname.toLowerCase();
-    const isPptx = lowerFileName.endsWith('.pptx');
-    const isXlsx = lowerFileName.endsWith('.xlsx');
-
-    if (!isPptx && !isXlsx) {
-        return res.status(400).json({ error: '현재는 .pptx 또는 .xlsx 형식만 지원합니다.' });
-    }
-
-    try {
-        const parsedDocument = isPptx ? parsePptxBuffer(file.buffer) : parseXlsxBuffer(file.buffer);
-        const meta = buildDocumentPreviewMeta(parsedDocument, isPptx ? 'pptx' : 'xlsx');
-        const itemCount = isPptx ? meta.slidesCount : meta.sheetsCount;
-
-        if (!itemCount) {
-            return res.status(400).json({
-                error: isPptx ? 'PPT에서 읽을 수 있는 텍스트를 찾지 못했습니다.' : '엑셀에서 읽을 수 있는 텍스트를 찾지 못했습니다.'
-            });
-        }
-
-        res.json({ meta });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: isPptx ? 'PPT 미리보기 중 오류가 발생했습니다.' : '엑셀 미리보기 중 오류가 발생했습니다.'
-        });
-    }
-});
-
 app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) => {
     const payload = req.body || {};
     const file = req.file;
@@ -780,8 +718,6 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
         }
 
         const usage = incrementUsage();
-        const previewMeta = buildDocumentPreviewMeta(parsedDocument, isPptx ? 'pptx' : 'xlsx');
-
         res.json({
             profile: {
                 ...profile,
@@ -791,7 +727,9 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
             imageMeta: buildImageMeta(String(payload.generateImage) === 'true', profileImage, moodImage, imageFailures),
             usage,
             meta: {
-                ...previewMeta
+                fileType: isPptx ? 'pptx' : 'xlsx',
+                slidesCount: isPptx ? itemCount : 0,
+                sheetsCount: isXlsx ? itemCount : 0
             }
         });
     } catch (error) {

@@ -14,8 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pptImageStyle = document.getElementById('pb-ppt-image-style');
     const pptGenerateImage = document.getElementById('pb-ppt-generate-image');
     const pptGenerateImageHelp = document.getElementById('pb-ppt-generate-image-help');
-    const pptPreviewButton = document.getElementById('pb-ppt-preview-btn');
-    const pptPreviewPanel = document.getElementById('pb-ppt-preview-panel');
     const pptGenerateButton = document.getElementById('pb-ppt-generate-btn');
     const pptStatus = document.getElementById('pb-ppt-status');
     const pptImageIssue = document.getElementById('pb-ppt-image-issue');
@@ -287,37 +285,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${baseMessage}${usageMessage}`;
     }
 
-    function renderDocumentPreview(meta) {
-        if (!pptPreviewPanel) return;
-
-        if (!meta) {
-            pptPreviewPanel.hidden = true;
-            pptPreviewPanel.innerHTML = '';
-            return;
-        }
-
-        const countLabel = meta.fileType === 'xlsx'
-            ? `시트 ${meta.sheetsCount || 0}개`
-            : `슬라이드 ${meta.slidesCount || 0}장`;
-
-        const previewItems = Array.isArray(meta.previewItems) ? meta.previewItems : [];
-        pptPreviewPanel.hidden = false;
-        pptPreviewPanel.innerHTML = `
-            <div class="pb-doc-preview-meta">${countLabel} 분석 미리보기</div>
-            <p class="pb-doc-preview-summary">${meta.previewSummary || '추출된 요약이 없습니다.'}</p>
-            <div class="pb-doc-preview-list">
-                ${previewItems.map((item) => `
-                    <div class="pb-doc-preview-item">
-                        <strong>${item.label}</strong>
-                        <p>${item.text}</p>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-
     function getCurrentPresentationElement() {
         return canvas.querySelector('.pb-presentation');
+    }
+
+    function isCurrentProfileTextOnlyChoice() {
+        return Boolean(getCurrentPresentationElement()?.classList.contains('is-text-only-choice'));
     }
 
     function updateSlotRegenerateState() {
@@ -1391,7 +1364,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 'success'
             );
             renderImageIssue(pptImageIssue, data.imageMeta);
-            renderDocumentPreview(data.meta);
             updateSlotRegenerateState();
         } catch (error) {
             setStatus(pptStatus, error.message || '문서 생성 중 오류가 발생했습니다.', 'error');
@@ -1513,10 +1485,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         reader.readAsDataURL(file);
         event.target.value = '';
-    });
-
-    pptFile?.addEventListener('change', () => {
-        renderDocumentPreview(null);
     });
 
     document.getElementById('pb-preview-btn')?.addEventListener('click', () => {
@@ -1669,42 +1637,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return clone;
     }
 
-    async function requestDocumentPreview() {
-        const file = pptFile?.files?.[0];
-
-        if (!file) {
-            setStatus(pptStatus, '먼저 미리볼 PPT 또는 Excel 파일을 선택해주세요.', 'error');
-            renderDocumentPreview(null);
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('pptFile', file);
-
-        pptPreviewButton.disabled = true;
-        setStatus(pptStatus, '문서 내용을 먼저 읽어서 요약 미리보기를 준비하는 중입니다...', 'loading');
-
-        try {
-            const response = await fetch('/api/preview-document', {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || '문서 미리보기 요청에 실패했습니다.');
-            }
-
-            renderDocumentPreview(data.meta);
-            setStatus(pptStatus, '문서 미리보기를 확인한 뒤 생성 여부를 결정할 수 있습니다.', 'success');
-        } catch (error) {
-            renderDocumentPreview(null);
-            setStatus(pptStatus, error.message || '문서 미리보기 중 오류가 발생했습니다.', 'error');
-        } finally {
-            pptPreviewButton.disabled = false;
-        }
-    }
-
     function getActiveTemplateType() {
         return getCurrentPresentationElement()?.dataset.templateType || aiTemplate?.value || pptTemplate?.value || 'sinjeom-ppt';
     }
@@ -1713,6 +1645,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const presentation = getCurrentPresentationElement();
         const currentProfile = getCurrentPresentationPayload(presentation);
         const templateType = getActiveTemplateType();
+        const textOnlyChoice = isCurrentProfileTextOnlyChoice();
 
         if (!presentation || !currentProfile) {
             setStatus(slotStatus, '먼저 프로필 결과를 생성한 뒤 필요한 부분만 다시 생성할 수 있습니다.', 'error');
@@ -1748,13 +1681,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             fillPresentation(presentation, data.profile);
+            syncPresentationImageState(presentation, { textOnly: textOnlyChoice });
             const restoredProfile = getCurrentPresentationPayload(presentation);
             storeProfileHistoryItem({
                 source: 'direct',
                 templateType,
                 profile: restoredProfile,
                 nameHint: lastProfileDownloadName,
-                imageMode: aiGenerateImage?.checked || pptGenerateImage?.checked
+                imageMode: !textOnlyChoice
             });
             setStatus(slotStatus, `${slotLabelMap[slotKey] || '선택 영역'}를 다시 생성했습니다.`, 'success');
         } catch (error) {
@@ -1917,7 +1851,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     aiGenerateButton?.addEventListener('click', requestAiProfile);
-    pptPreviewButton?.addEventListener('click', requestDocumentPreview);
     pptGenerateButton?.addEventListener('click', requestPptGeneration);
     slotRegenerateButtons.forEach((button) => {
         button.addEventListener('click', () => requestSlotRegeneration(button.dataset.slotKey));
