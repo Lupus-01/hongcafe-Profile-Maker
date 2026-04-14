@@ -239,6 +239,33 @@ function parseXlsxBuffer(buffer) {
     };
 }
 
+function buildDocumentPreviewMeta(parsedDocument, fileType) {
+    const items = fileType === 'xlsx'
+        ? (parsedDocument.sheets || []).map((sheet) => ({ label: `시트 ${sheet.name}`, text: sheet.text }))
+        : (parsedDocument.slides || []).map((slide) => ({ label: `슬라이드 ${slide.index}`, text: slide.text }));
+
+    const previewItems = items
+        .filter((item) => item.text)
+        .slice(0, 4)
+        .map((item) => ({
+            label: item.label,
+            text: String(item.text).replace(/\s+/g, ' ').trim().slice(0, 180)
+        }));
+
+    const previewSummary = String(parsedDocument.combinedText || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 420);
+
+    return {
+        fileType,
+        slidesCount: fileType === 'pptx' ? (parsedDocument.slides?.length || 0) : 0,
+        sheetsCount: fileType === 'xlsx' ? (parsedDocument.sheets?.length || 0) : 0,
+        previewSummary,
+        previewItems
+    };
+}
+
 async function generateProfileTextFromInput(payload) {
     const guide = getTemplateGuide(payload.templateType);
     const prompt = `
@@ -451,6 +478,60 @@ async function generateBrandPosterText(payload) {
     return parseJsonResponse(await extractTextFromResponse(response));
 }
 
+async function regenerateProfileSlot(payload) {
+    const guide = getTemplateGuide(payload.templateType);
+    const currentProfileJson = JSON.stringify(payload.currentProfile || {}, null, 2);
+    const slotInstructions = {
+        headline: {
+            schema: '{"headline":"메인 제목"}',
+            instructions: '- headline만 다시 쓴다.\n- 기존 톤을 유지하되 더 선명하고 읽기 쉽게 만든다.\n- 1~2줄 분량으로 간결하게 쓴다.'
+        },
+        intro: {
+            schema: '{"intro":"상단 소개 문단 2~3문장"}',
+            instructions: '- intro만 다시 쓴다.\n- headline과 자연스럽게 이어지게 쓴다.\n- 상담사 소개 페이지 첫 인상에 맞게 신뢰감 있게 쓴다.'
+        },
+        bulletPoints: {
+            schema: '{"bulletPoints":["핵심 포인트 1","핵심 포인트 2","핵심 포인트 3"]}',
+            instructions: '- bulletPoints만 다시 쓴다.\n- 3개를 반환한다.\n- 실제 상담 포인트처럼 짧고 또렷하게 쓴다.'
+        },
+        closing: {
+            schema: '{"closingTitle":"마무리 제목","closingBody":"마무리 설명 2문장"}',
+            instructions: '- closingTitle과 closingBody만 다시 쓴다.\n- 전체 내용을 정리하며 행동을 유도하는 마무리 톤으로 쓴다.'
+        }
+    };
+
+    const config = slotInstructions[payload.slotKey];
+    if (!config) {
+        throw new Error('지원하지 않는 재생성 슬롯입니다.');
+    }
+
+    const prompt = `
+너는 한국어 상담사 소개 페이지 카피라이터다.
+현재 프로필 문맥을 유지하면서 요청된 슬롯만 다시 작성한다.
+분야: ${guide.labelKo}
+
+현재 프로필 JSON:
+${currentProfileJson}
+
+재생성 대상: ${payload.slotKey}
+
+반환 스키마:
+${config.schema}
+
+추가 지시:
+${config.instructions}
+- 응답은 JSON만 반환한다.
+- 다른 슬롯은 절대 포함하지 않는다.
+`.trim();
+
+    const response = await ai.models.generateContent({
+        model: TEXT_MODEL,
+        contents: prompt
+    });
+
+    return parseJsonResponse(await extractTextFromResponse(response));
+}
+
 async function generateBrandPosterImage(payload) {
     const posterPrompt = `
 Create one premium promotional image for a Korean band marketing poster.
@@ -614,6 +695,41 @@ app.post('/api/generate-profile', async (req, res) => {
     }
 });
 
+app.post('/api/preview-document', upload.single('pptFile'), async (req, res) => {
+    const file = req.file;
+
+    if (!file) {
+        return res.status(400).json({ error: '문서 파일이 업로드되지 않았습니다.' });
+    }
+
+    const lowerFileName = file.originalname.toLowerCase();
+    const isPptx = lowerFileName.endsWith('.pptx');
+    const isXlsx = lowerFileName.endsWith('.xlsx');
+
+    if (!isPptx && !isXlsx) {
+        return res.status(400).json({ error: '현재는 .pptx 또는 .xlsx 형식만 지원합니다.' });
+    }
+
+    try {
+        const parsedDocument = isPptx ? parsePptxBuffer(file.buffer) : parseXlsxBuffer(file.buffer);
+        const meta = buildDocumentPreviewMeta(parsedDocument, isPptx ? 'pptx' : 'xlsx');
+        const itemCount = isPptx ? meta.slidesCount : meta.sheetsCount;
+
+        if (!itemCount) {
+            return res.status(400).json({
+                error: isPptx ? 'PPT에서 읽을 수 있는 텍스트를 찾지 못했습니다.' : '엑셀에서 읽을 수 있는 텍스트를 찾지 못했습니다.'
+            });
+        }
+
+        res.json({ meta });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: isPptx ? 'PPT 미리보기 중 오류가 발생했습니다.' : '엑셀 미리보기 중 오류가 발생했습니다.'
+        });
+    }
+});
+
 app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) => {
     const payload = req.body || {};
     const file = req.file;
@@ -664,6 +780,8 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
         }
 
         const usage = incrementUsage();
+        const previewMeta = buildDocumentPreviewMeta(parsedDocument, isPptx ? 'pptx' : 'xlsx');
+
         res.json({
             profile: {
                 ...profile,
@@ -673,15 +791,37 @@ app.post('/api/generate-from-ppt', upload.single('pptFile'), async (req, res) =>
             imageMeta: buildImageMeta(String(payload.generateImage) === 'true', profileImage, moodImage, imageFailures),
             usage,
             meta: {
-                fileType: isPptx ? 'pptx' : 'xlsx',
-                slidesCount: isPptx ? itemCount : 0,
-                sheetsCount: isXlsx ? itemCount : 0
+                ...previewMeta
             }
         });
     } catch (error) {
         console.error(error);
         res.status(500).json({
             error: isPptx ? 'PPT 분석 또는 AI 구성 중 오류가 발생했습니다.' : '엑셀 분석 또는 AI 구성 중 오류가 발생했습니다.'
+        });
+    }
+});
+
+app.post('/api/regenerate-profile-slot', async (req, res) => {
+    const payload = req.body || {};
+
+    if (!payload.templateType || !payload.slotKey || !payload.currentProfile) {
+        return res.status(400).json({ error: 'templateType, slotKey, currentProfile 값이 필요합니다.' });
+    }
+
+    if (!validateUsage(res) || !validateApiKey(res)) return;
+
+    try {
+        const regenerated = await regenerateProfileSlot(payload);
+        const usage = incrementUsage();
+        res.json({
+            profile: regenerated,
+            usage
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: '부분 재생성 중 오류가 발생했습니다.'
         });
     }
 });

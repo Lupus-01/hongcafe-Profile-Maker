@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pptImageStyle = document.getElementById('pb-ppt-image-style');
     const pptGenerateImage = document.getElementById('pb-ppt-generate-image');
     const pptGenerateImageHelp = document.getElementById('pb-ppt-generate-image-help');
+    const pptPreviewButton = document.getElementById('pb-ppt-preview-btn');
+    const pptPreviewPanel = document.getElementById('pb-ppt-preview-panel');
     const pptGenerateButton = document.getElementById('pb-ppt-generate-btn');
     const pptStatus = document.getElementById('pb-ppt-status');
     const pptImageIssue = document.getElementById('pb-ppt-image-issue');
@@ -38,6 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const bodySizeValue = document.getElementById('pb-body-size-value');
     const pointSizeValue = document.getElementById('pb-point-size-value');
     const lineHeightValue = document.getElementById('pb-line-height-value');
+    const historyList = document.getElementById('pb-history-list');
+    const historyEmpty = document.getElementById('pb-history-empty');
+    const slotStatus = document.getElementById('pb-slot-status');
+    const slotRegenerateButtons = Array.from(document.querySelectorAll('.pb-slot-regenerate-btn'));
 
     const previewModal = document.getElementById('pb-modal');
     const previewArea = document.getElementById('pb-preview-area');
@@ -70,6 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMode = 'profile';
     let currentBrandLogoDataUrl = '';
     let lastProfileDownloadName = 'profile-builder';
+    const PROFILE_HISTORY_KEY = 'pb-profile-history-v1';
+    const MAX_PROFILE_HISTORY = 8;
     const defaultTypography = {
         fontFamily: `'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif`,
         titleSize: 42,
@@ -154,6 +162,120 @@ document.addEventListener('DOMContentLoaded', () => {
         target.dataset.state = type;
     }
 
+    function loadProfileHistory() {
+        try {
+            const raw = window.localStorage.getItem(PROFILE_HISTORY_KEY);
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveProfileHistory(items) {
+        try {
+            window.localStorage.setItem(PROFILE_HISTORY_KEY, JSON.stringify(items.slice(0, MAX_PROFILE_HISTORY)));
+        } catch (error) {
+            console.warn('Failed to save profile history', error);
+        }
+    }
+
+    function renderProfileHistory() {
+        if (!historyList || !historyEmpty) return;
+
+        const items = loadProfileHistory();
+        historyList.innerHTML = '';
+        historyEmpty.hidden = items.length > 0;
+
+        items.forEach((item) => {
+            const card = document.createElement('div');
+            card.className = 'pb-history-item';
+            card.innerHTML = `
+                <div class="pb-history-item-head">
+                    <strong>${item.title}</strong>
+                    <time>${item.createdAtLabel}</time>
+                </div>
+                <p>${item.summary}</p>
+                <button class="pb-action-btn secondary" type="button">다시 불러오기</button>
+            `;
+
+            card.querySelector('button')?.addEventListener('click', () => restoreProfileHistoryItem(item.id));
+            historyList.appendChild(card);
+        });
+    }
+
+    function getCurrentPresentationPayload(element = canvas.querySelector('.pb-presentation')) {
+        if (!element) return null;
+
+        const getText = (slot) => element.querySelector(`[data-slot="${slot}"]`)?.innerText?.trim() || '';
+        const bulletPoints = Array.from(element.querySelectorAll('[data-slot="bulletPoints"] li'))
+            .map((item) => item.innerText.trim())
+            .filter(Boolean);
+
+        return {
+            eyebrow: getText('eyebrow'),
+            headline: getText('headline'),
+            intro: getText('intro'),
+            sectionTitle: getText('sectionTitle'),
+            sectionBody: getText('sectionBody'),
+            bulletPoints,
+            cardTitle: getText('cardTitle'),
+            cardBody: getText('cardBody'),
+            closingTitle: getText('closingTitle'),
+            closingBody: getText('closingBody')
+        };
+    }
+
+    function storeProfileHistoryItem({ source, templateType, profile, nameHint, imageMode }) {
+        if (!profile) return;
+
+        const now = new Date();
+        const createdAtLabel = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const sourceLabel = source === 'document' ? '문서 생성' : '직접 입력';
+        const summary = [profile.headline, profile.sectionTitle].filter(Boolean).join(' · ');
+
+        const item = {
+            id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+            source,
+            templateType,
+            imageMode,
+            title: `${nameHint || '프로필'} / ${sourceLabel}`,
+            summary: summary || '저장된 프로필 결과',
+            createdAtLabel,
+            profile
+        };
+
+        const history = loadProfileHistory();
+        const next = [item, ...history.filter((historyItem) => historyItem.summary !== item.summary || historyItem.title !== item.title)];
+        saveProfileHistory(next);
+        renderProfileHistory();
+    }
+
+    function restoreProfileHistoryItem(historyId) {
+        const item = loadProfileHistory().find((historyEntry) => historyEntry.id === historyId);
+        if (!item) return;
+
+        const templateConfig = templates[item.templateType];
+        if (!templateConfig) return;
+
+        applyTheme(templateConfig.theme);
+        if (pptTemplate) pptTemplate.value = item.templateType;
+        if (aiTemplate) aiTemplate.value = item.templateType;
+        if (aiGenerateImage) aiGenerateImage.checked = Boolean(item.imageMode);
+        if (pptGenerateImage) pptGenerateImage.checked = Boolean(item.imageMode);
+        updateImageGenerationControls();
+
+        const element = replaceCanvasWithElement(item.templateType);
+        fillPresentation(element, item.profile);
+        syncPresentationImageState(element, { textOnly: !item.imageMode });
+        lastProfileDownloadName = item.title.split(' / ')[0] || 'profile-builder';
+        setStatus(aiStatus, '히스토리에서 저장된 프로필을 다시 불러왔습니다.', 'success');
+        setStatus(pptStatus, '히스토리에서 저장된 프로필을 다시 불러왔습니다.', 'success');
+        renderImageIssue(aiImageIssue, null);
+        renderImageIssue(pptImageIssue, null);
+        updateSlotRegenerateState();
+    }
+
     function buildGenerationStatus(baseMessage, usage, imageMeta) {
         const usageMessage = usage ? ` 오늘 사용량 ${usage.used}/${usage.limit}` : '';
 
@@ -163,6 +285,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         return `${baseMessage}${usageMessage}`;
+    }
+
+    function renderDocumentPreview(meta) {
+        if (!pptPreviewPanel) return;
+
+        if (!meta) {
+            pptPreviewPanel.hidden = true;
+            pptPreviewPanel.innerHTML = '';
+            return;
+        }
+
+        const countLabel = meta.fileType === 'xlsx'
+            ? `시트 ${meta.sheetsCount || 0}개`
+            : `슬라이드 ${meta.slidesCount || 0}장`;
+
+        const previewItems = Array.isArray(meta.previewItems) ? meta.previewItems : [];
+        pptPreviewPanel.hidden = false;
+        pptPreviewPanel.innerHTML = `
+            <div class="pb-doc-preview-meta">${countLabel} 분석 미리보기</div>
+            <p class="pb-doc-preview-summary">${meta.previewSummary || '추출된 요약이 없습니다.'}</p>
+            <div class="pb-doc-preview-list">
+                ${previewItems.map((item) => `
+                    <div class="pb-doc-preview-item">
+                        <strong>${item.label}</strong>
+                        <p>${item.text}</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function getCurrentPresentationElement() {
+        return canvas.querySelector('.pb-presentation');
+    }
+
+    function updateSlotRegenerateState() {
+        const hasPresentation = currentMode === 'profile' && Boolean(getCurrentPresentationElement());
+        slotRegenerateButtons.forEach((button) => {
+            button.disabled = !hasPresentation;
+        });
     }
 
     function renderImageIssue(panel, imageMeta) {
@@ -442,6 +604,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>`;
             }
         }
+
+        updateSlotRegenerateState();
     }
 
     function bindModeTabs() {
@@ -1147,6 +1311,13 @@ document.addEventListener('DOMContentLoaded', () => {
             fillPresentation(element, data.profile);
             syncPresentationImageState(element, { textOnly: !shouldGenerateImages });
             lastProfileDownloadName = (name || specialty || 'profile-builder').trim();
+            storeProfileHistoryItem({
+                source: 'direct',
+                templateType,
+                profile: getCurrentPresentationPayload(element.querySelector('.pb-presentation') || element),
+                nameHint: lastProfileDownloadName,
+                imageMode: shouldGenerateImages
+            });
 
             setStatus(
                 aiStatus,
@@ -1154,6 +1325,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'success'
             );
             renderImageIssue(aiImageIssue, data.imageMeta);
+            updateSlotRegenerateState();
         } catch (error) {
             setStatus(aiStatus, error.message || 'AI 생성 중 오류가 발생했습니다.', 'error');
             renderImageIssue(aiImageIssue, null);
@@ -1198,6 +1370,13 @@ document.addEventListener('DOMContentLoaded', () => {
             fillPresentation(element, data.profile);
             syncPresentationImageState(element, { textOnly: !shouldGenerateImages });
             lastProfileDownloadName = file.name.replace(/\.[^.]+$/, '') || 'profile-builder';
+            storeProfileHistoryItem({
+                source: 'document',
+                templateType,
+                profile: getCurrentPresentationPayload(element.querySelector('.pb-presentation') || element),
+                nameHint: lastProfileDownloadName,
+                imageMode: shouldGenerateImages
+            });
 
             const slideMessage = data.meta?.slidesCount ? `슬라이드 ${data.meta.slidesCount}장 분석 완료.` : '';
             const sheetMessage = data.meta?.sheetsCount ? `시트 ${data.meta.sheetsCount}개 분석 완료.` : '';
@@ -1212,6 +1391,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 'success'
             );
             renderImageIssue(pptImageIssue, data.imageMeta);
+            renderDocumentPreview(data.meta);
+            updateSlotRegenerateState();
         } catch (error) {
             setStatus(pptStatus, error.message || '문서 생성 중 오류가 발생했습니다.', 'error');
             renderImageIssue(pptImageIssue, null);
@@ -1334,6 +1515,10 @@ document.addEventListener('DOMContentLoaded', () => {
         event.target.value = '';
     });
 
+    pptFile?.addEventListener('change', () => {
+        renderDocumentPreview(null);
+    });
+
     document.getElementById('pb-preview-btn')?.addEventListener('click', () => {
         previewArea.innerHTML = '';
         previewArea.style.backgroundColor = currentBrandBg;
@@ -1347,6 +1532,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!window.confirm('캔버스의 모든 블록을 지울까요?')) return;
         if (currentMode === 'brand') {
             canvas.innerHTML = createBrandEmptyState();
+            updateSlotRegenerateState();
             return;
         }
         canvas.innerHTML = `
@@ -1354,6 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="pb-empty-icon">DOC</div>
                 <p>문서 업로드 생성 버튼으로 시작하거나, 왼쪽 블록을 끌어와 직접 구성해보세요.</p>
             </div>`;
+        updateSlotRegenerateState();
     });
 
     exportButton?.addEventListener('click', async () => {
@@ -1480,6 +1667,101 @@ document.addEventListener('DOMContentLoaded', () => {
         const empty = clone.querySelector('.pb-empty-state');
         if (empty) empty.remove();
         return clone;
+    }
+
+    async function requestDocumentPreview() {
+        const file = pptFile?.files?.[0];
+
+        if (!file) {
+            setStatus(pptStatus, '먼저 미리볼 PPT 또는 Excel 파일을 선택해주세요.', 'error');
+            renderDocumentPreview(null);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('pptFile', file);
+
+        pptPreviewButton.disabled = true;
+        setStatus(pptStatus, '문서 내용을 먼저 읽어서 요약 미리보기를 준비하는 중입니다...', 'loading');
+
+        try {
+            const response = await fetch('/api/preview-document', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || '문서 미리보기 요청에 실패했습니다.');
+            }
+
+            renderDocumentPreview(data.meta);
+            setStatus(pptStatus, '문서 미리보기를 확인한 뒤 생성 여부를 결정할 수 있습니다.', 'success');
+        } catch (error) {
+            renderDocumentPreview(null);
+            setStatus(pptStatus, error.message || '문서 미리보기 중 오류가 발생했습니다.', 'error');
+        } finally {
+            pptPreviewButton.disabled = false;
+        }
+    }
+
+    function getActiveTemplateType() {
+        return getCurrentPresentationElement()?.dataset.templateType || aiTemplate?.value || pptTemplate?.value || 'sinjeom-ppt';
+    }
+
+    async function requestSlotRegeneration(slotKey) {
+        const presentation = getCurrentPresentationElement();
+        const currentProfile = getCurrentPresentationPayload(presentation);
+        const templateType = getActiveTemplateType();
+
+        if (!presentation || !currentProfile) {
+            setStatus(slotStatus, '먼저 프로필 결과를 생성한 뒤 필요한 부분만 다시 생성할 수 있습니다.', 'error');
+            return;
+        }
+
+        const slotLabelMap = {
+            headline: '헤드라인',
+            intro: '인트로',
+            bulletPoints: '핵심 포인트',
+            closing: '마무리 문구'
+        };
+
+        slotRegenerateButtons.forEach((button) => {
+            button.disabled = true;
+        });
+        setStatus(slotStatus, `${slotLabelMap[slotKey] || '선택 영역'}를 현재 문맥에 맞게 다시 만드는 중입니다...`, 'loading');
+
+        try {
+            const response = await fetch('/api/regenerate-profile-slot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    templateType,
+                    slotKey,
+                    currentProfile
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || '부분 재생성 요청에 실패했습니다.');
+            }
+
+            fillPresentation(presentation, data.profile);
+            const restoredProfile = getCurrentPresentationPayload(presentation);
+            storeProfileHistoryItem({
+                source: 'direct',
+                templateType,
+                profile: restoredProfile,
+                nameHint: lastProfileDownloadName,
+                imageMode: aiGenerateImage?.checked || pptGenerateImage?.checked
+            });
+            setStatus(slotStatus, `${slotLabelMap[slotKey] || '선택 영역'}를 다시 생성했습니다.`, 'success');
+        } catch (error) {
+            setStatus(slotStatus, error.message || '부분 재생성 중 오류가 발생했습니다.', 'error');
+        } finally {
+            updateSlotRegenerateState();
+        }
     }
 
     async function downloadBrandPosterImage() {
@@ -1635,7 +1917,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     aiGenerateButton?.addEventListener('click', requestAiProfile);
+    pptPreviewButton?.addEventListener('click', requestDocumentPreview);
     pptGenerateButton?.addEventListener('click', requestPptGeneration);
+    slotRegenerateButtons.forEach((button) => {
+        button.addEventListener('click', () => requestSlotRegeneration(button.dataset.slotKey));
+    });
 
     insertModeTabs();
     insertBrandPanel();
@@ -1657,5 +1943,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme('pb-theme-sinjeom');
     applyTypographySettings();
     updateImageGenerationControls();
+    renderProfileHistory();
+    updateSlotRegenerateState();
     updateModeVisibility('profile');
 });
