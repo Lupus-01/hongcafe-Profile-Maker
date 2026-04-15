@@ -16,7 +16,7 @@ const PORT = Number(process.env.PORT || 3100);
 const DAILY_PROFILE_LIMIT = Number(process.env.DAILY_PROFILE_LIMIT || 50);
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || '';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const TEXT_MODEL = process.env.TEXT_MODEL || 'gemini-2.5-flash-lite';
+const TEXT_MODEL = process.env.TEXT_MODEL || 'gemini-3.1-flash-lite-preview';
 const IMAGE_MODEL = process.env.IMAGE_MODEL || 'gemini-2.5-flash-image';
 const usageFilePath = path.join(__dirname, '.profile-usage.json');
 
@@ -325,8 +325,8 @@ async function generateImage(prompt, imageKind) {
     const fallbackModels = [
         IMAGE_MODEL,
         'gemini-2.5-flash-image',
-        'gemini-3-pro-image-preview',
-        'gemini-2.0-flash-preview-image-generation'
+        'gemini-3.1-flash-image-preview',
+        'gemini-3-pro-image-preview'
     ];
     const modelsToTry = [...new Set(fallbackModels.filter(Boolean))];
     let lastError = null;

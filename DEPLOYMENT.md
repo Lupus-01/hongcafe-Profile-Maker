@@ -98,8 +98,8 @@ nano .env
 ```env
 PORT=3100
 GEMINI_API_KEY=여기에_실제_API_KEY
-TEXT_MODEL=gemini-2.5-flash-lite
-IMAGE_MODEL=gemini-2.0-flash-preview-image-generation
+TEXT_MODEL=gemini-3.1-flash-lite-preview
+IMAGE_MODEL=gemini-2.5-flash-image
 DAILY_PROFILE_LIMIT=50
 FRONTEND_ORIGIN=
 ```
